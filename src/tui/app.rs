@@ -1,13 +1,9 @@
-use crossterm::event::{Event, KeyCode, KeyModifiers};
 use ratatui::{DefaultTerminal, Frame, layout::Constraint, widgets::{Block, Borders, Paragraph}};
 pub fn app(terminal: &mut DefaultTerminal)-> std::result::Result<(), Box<dyn std::error::Error>> {
   loop {
     terminal.draw(render)?;
-    if let Event::Key(key) = crossterm::event::read()? {
-      match key.code {
-        KeyCode::Char('q') if key.modifiers == KeyModifiers::CONTROL => break,
-         _ => {},
-      }
+    if crate::keys::init::main()? {
+      break;
     }
   }
   Ok(())

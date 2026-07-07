@@ -1,4 +1,5 @@
 mod cmd;
+mod keys;
 mod state;
 mod tui;
 
