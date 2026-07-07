@@ -1,3 +1,4 @@
+mod state;
 use crossterm::event::{Event, KeyCode, KeyModifiers};
 use ratatui::{DefaultTerminal, Frame, layout::Constraint, widgets::{Block, Borders, Paragraph}};
 
