@@ -1,11 +1,9 @@
 pub mod render;
 use std::error::Error;
 
-use ratatui::{
-  DefaultTerminal, Frame,
-};
+use ratatui::{DefaultTerminal, Frame};
 
-use crate::state::tabs::TabPage::HomePage;
+use crate::{action::navigate::Action, state::tabs::TabPage::HomePage};
 
 #[allow(dead_code)]
 pub enum TabPage {
@@ -33,8 +31,11 @@ impl App {
   fn draw(&self, terminal: &mut DefaultTerminal) -> std::result::Result<(), Box<dyn Error>> {
     loop {
       terminal.draw(|frame| self.render(frame))?;
-      if crate::keys::init::main()? {
-        break;
+      match crate::keys::init::handle_input()? {
+        Action::Quit => break,
+        Action::GoToHomePage => todo!(),
+        Action::GoToHelpPage => todo!(),
+        Action::None => continue,
       }
     }
     Ok(())
@@ -46,7 +47,7 @@ impl App {
     }
   }
 
-  pub fn run(&self)-> Result<(), Box<dyn std::error::Error>>{
+  pub fn run(&self) -> Result<(), Box<dyn std::error::Error>> {
     ratatui::run(|terminal| self.draw(terminal))?;
     Ok(())
   }
