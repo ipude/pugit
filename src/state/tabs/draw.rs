@@ -18,7 +18,11 @@ impl App {
     terminal.draw(|frame| {
       let list = List::new(self.menu.items.iter().copied())
         .block(Block::new().borders(Borders::ALL).title("Menu"))
-        .highlight_style(ratatui::style::Style::default().bg(ratatui::style::Color::Cyan))
+        .highlight_style(
+          ratatui::style::Style::default()
+            .bg(ratatui::style::Color::Cyan)
+            .fg(ratatui::style::Color::Black),
+        )
         .highlight_symbol("> ");
       frame.render_stateful_widget(list, frame.area(), &mut state);
     })?;
