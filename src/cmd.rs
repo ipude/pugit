@@ -4,10 +4,10 @@ use clap::Parser;
 #[command(propagate_version = true)]
 struct Cli {
   init: Option<String>,
-  config: Option<String>
+  config: Option<String>,
 }
 
-pub fn parser(){
+pub fn parser() {
   let cli = Cli::parse();
   if let Some(cfg) = cli.config {
     println!("{cfg}")

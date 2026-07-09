@@ -1,5 +1,5 @@
-mod cmd;
 mod action;
+mod cmd;
 mod keys;
 mod state;
 

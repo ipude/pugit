@@ -2,9 +2,7 @@ pub mod draw;
 pub mod menu;
 use std::error::Error;
 
-use ratatui::{
-  DefaultTerminal,
-};
+use ratatui::DefaultTerminal;
 
 use crate::state::tabs::menu::Menu;
 use crate::{action::navigate::Action, state::tabs::TabPage::HomePage};
@@ -56,7 +54,6 @@ impl App {
     }
     Ok(())
   }
-
 
   pub fn run(&mut self) -> Result<(), Box<dyn std::error::Error>> {
     ratatui::run(|terminal| self.draw(terminal))?;
