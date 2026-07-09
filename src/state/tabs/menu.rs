@@ -13,10 +13,6 @@ impl Menu {
     }
   }
 
-  pub fn push(&mut self, state: usize) {
-    self.selected = state;
-  }
-
   pub fn select_next(&mut self) {
     if self.selected == self.items.len().saturating_sub(1) {
       self.selected = 0;
