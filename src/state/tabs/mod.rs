@@ -41,13 +41,19 @@ impl App {
           self.draw_help_page(terminal)?;
         }
       }
-      match crate::keys::init::handle_input(self)? {
+      match crate::keys::input::handle_input(self)? {
         Action::Quit => break,
         Action::GoToHomePage => {
           self.current_tab = TabPage::HomePage;
         }
         Action::GoToHelpPage => {
           self.current_tab = TabPage::HelpPage;
+        }
+        Action::EnterContinue => {
+
+        }
+        Action::EnterSetting => {
+
         }
         Action::None => continue,
       }
