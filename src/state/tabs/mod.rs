@@ -1,10 +1,8 @@
 pub mod draw;
-pub mod menu;
 use std::error::Error;
 
 use ratatui::DefaultTerminal;
 
-use crate::state::tabs::menu::Menu;
 use crate::{action::navigate::Action, state::tabs::TabPage::HomePage};
 
 #[allow(dead_code)]
@@ -17,7 +15,6 @@ pub enum TabPage {
 #[allow(dead_code)]
 pub struct App {
   pub current_tab: TabPage,
-  pub menu: Menu,
   pub text: String,
 }
 
@@ -26,7 +23,6 @@ impl App {
   pub fn new() -> App {
     App {
       current_tab: HomePage,
-      menu: Menu::new(),
       text: "".to_string(),
     }
   }
