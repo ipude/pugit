@@ -1,6 +1,5 @@
 use ratatui::{
   layout::{self},
-  widgets::{Block, Borders, List},
 };
 use std::error::Error;
 
@@ -13,18 +12,17 @@ impl App {
     &self,
     terminal: &mut DefaultTerminal,
   ) -> std::result::Result<(), Box<dyn Error>> {
-    let mut state = ratatui::widgets::ListState::default();
-    state.select(Some(self.menu.selected));
     terminal.draw(|frame| {
-      let list = List::new(self.menu.items.iter().copied())
-        .block(Block::new().borders(Borders::ALL).title("Menu"))
-        .highlight_style(
-          ratatui::style::Style::default()
-            .bg(ratatui::style::Color::Cyan)
-            .fg(ratatui::style::Color::Black),
-        )
-        .highlight_symbol("> ");
-      frame.render_stateful_widget(list, frame.area(), &mut state);
+      let [help_page] =
+        ratatui::layout::Layout::vertical([layout::Constraint::Fill(1)]).areas(frame.area());
+      frame.render_widget(
+        ratatui::widgets::Paragraph::new("This is the Home Page").block(
+          ratatui::widgets::Block::new()
+            .borders(ratatui::widgets::Borders::ALL)
+            .title("Home Page"),
+        ),
+        help_page,
+      );
     })?;
     Ok(())
   }
