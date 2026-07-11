@@ -1127,6 +1127,7 @@ dependencies = [
 name = "pugit"
 version = "0.1.0"
 dependencies = [
+ "anyhow",
  "clap",
  "crossterm",
  "git2",
