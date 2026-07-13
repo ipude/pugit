@@ -1,5 +1,5 @@
 mod action;
-mod data;
+mod git;
 mod cmd;
 mod keys;
 mod state;
