@@ -3,12 +3,8 @@ use git2::{Branch, ErrorCode, Oid, Repository};
 use std::path::{Path, PathBuf};
 
 #[derive(Debug)]
-/// This enum tells/holds one of the following listed values:
-/// 1. Detached(type: String)
-/// 2. Branch(type: String)
-/// 3. Error(type: String)
-/// 4. Unborn( type less I handle this case as a token/bool )
-/// Method to get it : Git::get_head_state()
+/// Only returned via `Git::get_head_state()`.
+/// Only One out of all can possess a value.
 pub enum HeadState {
   Detached(Oid),
   Branch(String),
@@ -16,19 +12,19 @@ pub enum HeadState {
   Unborn,
 }
 
-/// It holds Remote's oid or error
+/// It holds Remote's oid or error.
 /// It fetches the oid if HeadState::Branch(name) contains some local branch name.
 /// It uses the raw shorthand of the `Branch(name)` to fetch oid of the latest pushed commit.
 ///
-/// State of use : May be unnecessary
+/// State of use : May be unnecessary.
 pub enum Remote {
   Oid(String),
   Error(String),
 }
 
-/// This is only valid as long as the Repository is
-/// Must not be stored into struct as it can stale if Branch is suddenly changed
-/// Holds either of a `Branch<'repo>` or `Error: String`
+/// This is only valid as long as the Repository is.
+/// Must not be stored into struct as it can stale if Branch is suddenly changed.
+/// Holds either of a `Branch<'repo>` or `Error: String`.
 pub enum LocalBranch<'repo> {
   Branch(Branch<'repo>),
   Error(String),
@@ -51,8 +47,8 @@ impl Git {
 
 #[allow(dead_code)]
 impl Git {
-  /// Parses String into PathBuf via Shellexpand
-  /// Status : Accurate and Tested by `ipude`
+  /// Parses String into PathBuf via crate:  `Shellexpand`.
+  /// Status : Accurate and Tested by `ipude`.
   fn string_to_path(path_string: &str) -> anyhow::Result<PathBuf> {
     let expanded = shellexpand::full(path_string)
       .with_context(|| format!("failed to expand path: `{path_string}`"))?;
@@ -63,8 +59,8 @@ impl Git {
     Ok(canonical)
   }
 
-  /// Retuns enum `HeadState`
-  /// Status: Accurate and Tested by `ipude`
+  /// Retuns enum `HeadState`.
+  /// Status: Accurate and Tested by `ipude`.
   pub fn get_head_state(repo: &Repository) -> HeadState {
     match repo.head() {
       // A head (latest commit) can point either to a Branch say Main or to a commit(only if is detached) so :
@@ -86,10 +82,9 @@ impl Git {
     }
   }
 
-  /// This method will only live until repo is valid
-  /// Since `LocalBranch` is derived from repo then if I hold the repo in memory then likely I can get access to this data also whenever I want.
-  /// Make sure `LocalBranch` must not be stored directly as a static data.
-  /// Status : Not tested tested yet (theorretical only)
+  /// Validity of `Branch<'_>` depends on `Repository`.
+  /// Vulnerable to staling.
+  /// Status: Unchecked by `ipude`.
   fn get_local_branch<'repo>(repo: &'repo Repository, head_state: HeadState) -> LocalBranch<'repo> {
     match head_state {
       HeadState::Branch(name) => match repo.find_branch(&name, git2::BranchType::Local) {
