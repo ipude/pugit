@@ -1,10 +1,6 @@
 use anyhow::Context;
-use git2::{Branch, ErrorCode, Repository};
-use std::{
-  error::Error,
-  path::{Path, PathBuf},
-  result,
-};
+use git2::{Branch, ErrorCode, Oid, Repository};
+use std::path::{Path, PathBuf};
 
 #[derive(Debug)]
 /// This enum tells/holds one of the following listed values:
@@ -14,13 +10,13 @@ use std::{
 /// 4. Unborn( type less I handle this case as a token/bool )
 /// Method to get it : Git::get_head_state()
 pub enum HeadState {
-  Detached(String),
+  Detached(Oid),
   Branch(String),
   Error(String),
   Unborn,
 }
 
-/// It holds Remote's oid or error 
+/// It holds Remote's oid or error
 /// It fetches the oid if HeadState::Branch(name) contains some local branch name.
 /// It uses the raw shorthand of the `Branch(name)` to fetch oid of the latest pushed commit.
 ///
@@ -31,7 +27,7 @@ pub enum Remote {
 }
 
 /// This is only valid as long as the Repository is
-/// Must not be stored into struct as it can stale if Branch is suddenly changed 
+/// Must not be stored into struct as it can stale if Branch is suddenly changed
 /// Holds either of a `Branch<'repo>` or `Error: String`
 pub enum LocalBranch<'repo> {
   Branch(Branch<'repo>),
@@ -42,15 +38,22 @@ pub enum LocalBranch<'repo> {
 /// The core Git structure that holds lifelong and expensive to recalculate variables.
 pub struct Git {
   repo: Repository,
-
 }
 
 #[allow(dead_code)]
 impl Git {
-  /// Parses the repo path string to Path by expanding
-  /// all the enviromental variables.
+  pub fn new(path: &str) -> anyhow::Result<Self> {
+    Ok(Self {
+      repo: Repository::open(Git::string_to_path(path)?)?,
+    })
+  }
+}
+
+#[allow(dead_code)]
+impl Git {
+  /// Parses String into PathBuf via Shellexpand
   /// Status : Accurate and Tested.
-  fn repo_path_parser(path_string: &str) -> anyhow::Result<PathBuf> {
+  fn string_to_path(path_string: &str) -> anyhow::Result<PathBuf> {
     let expanded = shellexpand::full(path_string)
       .with_context(|| format!("failed to expand path: `{path_string}`"))?;
 
@@ -59,35 +62,28 @@ impl Git {
       .with_context(|| format!("The expanded path do not exists or is inaccessible : `{expanded}` probably the `{path_string}` is wrong."))?;
     Ok(canonical)
   }
-  fn get_repo(path: PathBuf) -> Result<Repository, Box<dyn Error>> {
-    let repo = Repository::open(path)?;
-    Ok(repo)
-  }
 
-  /// This method returns enum `HeadState` and will fail gracefully.
-  /// Check enum `HeadState` to know what it returns.
+  /// Retuns enum `HeadState`
   /// Status : Accurate and Tested.
-  fn head_state(repo: &Repository) -> result::Result<HeadState, Box<dyn Error>> {
-    let head = repo.head();
-    let head_state = match head {
+  fn get_head_state(repo: &Repository) -> HeadState {
+    match repo.head() {
+      // A head (latest commit) can point either to a Branch say Main or to a commit(only if is detached) so :
       Ok(head) => {
-        // detached head points to a commit (oid)
-        if repo.head_detached()? {
-          HeadState::Detached(head.target().unwrap().to_string())
-        }
-        // attached head points to a branch
-        // if there is a branch unwrap the name or else return "unkown"
-        else {
-          HeadState::Branch(head.shorthand().unwrap_or("unkown").to_string())
+        if head.is_branch() {
+          return HeadState::Branch(head.shorthand().unwrap().to_string());
+        } else {
+          match head.target() {
+            Some(oid) => HeadState::Detached(oid),
+            None => HeadState::Error("Detached HEAD but points to no Commit.".to_string()),
+          }
         }
       }
-      // To handle the unborn branch case
+      // This is done to tell user that the Branch is unborn. 
       Err(e) if e.code() == ErrorCode::UnbornBranch => HeadState::Unborn,
 
-      // To display a serious error
+      // This displays serious to resolve errors.
       Err(e) => HeadState::Error(e.to_string()),
-    };
-    Ok(head_state)
+    }
   }
 
   /// This method will only live until repo is valid
@@ -104,7 +100,7 @@ impl Git {
     }
   }
 
-  /// This function gets remote oid 
+  /// This function gets remote oid
   /// Must be treated as a temporary value.
   fn get_remote_oid() {
     let upstream = match local_branch.upstream() {
