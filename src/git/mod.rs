@@ -100,7 +100,13 @@ impl Git {
     }
   }
 
-  fn get_remote_oid(){
-    let 
+  pub fn get_oid_local_remote(current: &Current) -> Remote {
+    match current {
+      Current::LocalBranch(b) => match b.upstream() {
+        Ok(br) => Remote::Commit(br.get().target().unwrap()),
+        Err(e) => Remote::Error(e.to_string()),
+      },
+      Current::Error(error) => Remote::Error(error.to_string()),
+    }
   }
 }
