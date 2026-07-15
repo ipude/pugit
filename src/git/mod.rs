@@ -12,11 +12,10 @@ pub struct Git {
 }
 
 /// Precidence : 1st
-///   
-/// Refrence() -> current branch's -> head ref
-/// Detached() -> no branch -> commit 
-/// Error() -> Debug Error
-/// Unborn -> Head is Unborn
+/// If current branch -> ref head
+/// else : `Commit<'repo>`
+/// If Unborn -> `Unborn`
+/// Rare : Error
 #[allow(dead_code)]
 pub enum Head<'repo> {
   Refrence(Reference<'repo>),
