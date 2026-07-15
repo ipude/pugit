@@ -1,6 +1,4 @@
-use ratatui::{
-  layout::{self},
-};
+use ratatui::layout::{self};
 use std::error::Error;
 
 use ratatui::DefaultTerminal;

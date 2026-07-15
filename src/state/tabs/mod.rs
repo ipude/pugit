@@ -45,12 +45,8 @@ impl App {
         Action::GoToHelpPage => {
           self.current_tab = TabPage::HelpPage;
         }
-        Action::EnterContinue => {
-
-        }
-        Action::EnterSetting => {
-
-        }
+        Action::EnterContinue => {}
+        Action::EnterSetting => {}
         Action::None => continue,
       }
     }
