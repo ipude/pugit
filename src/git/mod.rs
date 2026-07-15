@@ -1,5 +1,5 @@
 use anyhow::Context;
-use git2::{Branch, Commit, ErrorCode, Oid, Reference, Repository};
+use git2::{Branch, Commit, ErrorCode, Reference, Repository};
 use std::path::{Path, PathBuf};
 
 #[allow(dead_code)]
@@ -8,7 +8,7 @@ pub enum HeadState<'repo> {
   /// Valid only if head is a branch
   Refrence(Reference<'repo>),
   /// Valid only if head is not a branch but available
-  Detached(Oid),
+  Detached(Commit<'repo>),
   /// Serious error to display
   Error(String),
   /// State when Branch is unborn
@@ -61,24 +61,28 @@ impl Git {
 
   /// Retuns enum `HeadState`.
   /// Status: Accurate and Tested by `ipude`.
-  pub fn get_current_head<'repo>(repo: &'repo Repository) -> HeadState<'repo> {
+  pub fn get_current_head<'repo>(
+    repo: &'repo Repository,
+  ) -> anyhow::Result<HeadState<'repo>, anyhow::Error> {
     match repo.head() {
       // A head (latest commit) can point either to a Branch say Main or to a commit(only if is detached) so :
       Ok(head) => {
         if head.is_branch() {
-          HeadState::Refrence(head)
+          Ok(HeadState::Refrence(head))
         } else {
           match head.target() {
-            Some(oid) => HeadState::Detached(oid),
-            None => HeadState::Error("Detached HEAD but points to no Commit.".to_string()),
+            Some(oid) => Ok(HeadState::Detached(repo.find_commit(oid)?)),
+            None => Ok(HeadState::Error(
+              "Detached HEAD but points to no Commit.".to_string(),
+            )),
           }
         }
       }
       // This is done to tell user that the Branch is unborn.
-      Err(e) if e.code() == ErrorCode::UnbornBranch => HeadState::Unborn,
+      Err(e) if e.code() == ErrorCode::UnbornBranch => Ok(HeadState::Unborn),
 
       // This displays serious to resolve errors.
-      Err(e) => HeadState::Error(e.to_string()),
+      Err(e) => Ok(HeadState::Error(e.to_string())),
     }
   }
 
