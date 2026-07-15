@@ -16,8 +16,9 @@ pub enum HeadState<'repo> {
 }
 
 #[allow(dead_code)]
+/// The Remote commit containg enum
 pub enum Remote {
-  Oid(String),
+  Commit(Oid),
   Error(String),
 }
 
@@ -99,10 +100,7 @@ impl Git {
     }
   }
 
-  // fn get_remote_oid() {
-  //   let upstream = match local_branch.upstream() {
-  //     Ok(local_branch) => Remote::Oid(local_branch.get().target().unwrap().to_string()),
-  //     Err(e) => Remote::Error(e.to_string()),
-  //   };
-  // }
+  fn get_remote_oid(){
+    let 
+  }
 }
