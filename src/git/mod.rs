@@ -100,6 +100,7 @@ impl Git {
     }
   }
 
+  /// Get latest oid of the local branch which has been pushed to the underlying remote.
   pub fn get_oid_local_remote(current: &Current) -> Remote {
     match current {
       Current::LocalBranch(b) => match b.upstream() {
