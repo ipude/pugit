@@ -1,5 +1,5 @@
 use anyhow::Context;
-use git2::{Branch, ErrorCode, Oid, Reference, Repository};
+use git2::{Branch, Commit, ErrorCode, Oid, Reference, Repository};
 use std::path::{Path, PathBuf};
 
 #[allow(dead_code)]
@@ -17,8 +17,8 @@ pub enum HeadState<'repo> {
 
 #[allow(dead_code)]
 /// The Remote commit containg enum
-pub enum Remote {
-  Commit(Oid),
+pub enum Upstream<'repo> {
+  Commit(Commit<'repo>),
   Error(String),
 }
 
@@ -61,7 +61,7 @@ impl Git {
 
   /// Retuns enum `HeadState`.
   /// Status: Accurate and Tested by `ipude`.
-  pub fn get_head_state<'repo>(repo: &'repo Repository) -> HeadState<'repo> {
+  pub fn get_current_head<'repo>(repo: &'repo Repository) -> HeadState<'repo> {
     match repo.head() {
       // A head (latest commit) can point either to a Branch say Main or to a commit(only if is detached) so :
       Ok(head) => {
@@ -85,7 +85,7 @@ impl Git {
   /// Validity of `Branch<'_>` depends on `Repository`.
   /// Vulnerable to staling.
   /// Status: Unchecked by `ipude`.
-  pub fn get_local_branch<'repo>(
+  pub fn get_current_local_branch<'repo>(
     repo: &'repo Repository,
     head_state: &HeadState,
   ) -> Current<'repo> {
@@ -101,13 +101,20 @@ impl Git {
   }
 
   /// Get latest oid of the local branch which has been pushed to the underlying remote.
-  pub fn get_oid_local_remote(current: &Current) -> Remote {
+  pub fn get_oid_current<'repo>(
+    repo: &'repo Repository,
+    current: &Current,
+  ) -> anyhow::Result<Upstream<'repo>, anyhow::Error> {
     match current {
       Current::LocalBranch(b) => match b.upstream() {
-        Ok(br) => Remote::Commit(br.get().target().unwrap()),
-        Err(e) => Remote::Error(e.to_string()),
+        Ok(br) => Ok(Upstream::Commit(
+          repo.find_commit(br.get().target().unwrap())?,
+        )),
+        Err(e) => Ok(Upstream::Error(e.to_string())),
       },
-      Current::Error(error) => Remote::Error(error.to_string()),
+      Current::Error(error) => Ok(Upstream::Error(error.to_string())),
     }
   }
+
+  // pub fn get_commit()
 }
