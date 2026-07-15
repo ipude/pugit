@@ -111,8 +111,8 @@ impl Git {
   ) -> anyhow::Result<Upstream<'repo>, anyhow::Error> {
     match current {
       Current::LocalBranch(b) => match b.upstream() {
-        Ok(br) => Ok(Upstream::Commit(
-          repo.find_commit(br.get().target().unwrap())?,
+        Ok(localbranch) => Ok(Upstream::Commit(
+          repo.find_commit(localbranch.get().target().unwrap())?,
         )),
         Err(e) => Ok(Upstream::Error(e.to_string())),
       },
@@ -120,5 +120,7 @@ impl Git {
     }
   }
 
-  // pub fn get_commit()
+  pub fn get_current_upstream() {
+    
+  }
 }
