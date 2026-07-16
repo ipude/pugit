@@ -1,4 +1,4 @@
-use git2::{Branch, Commit, Reference, Repository};
+use git2::{Branch, Commit, Reference, Repository, RepositoryState};
 
 pub mod current;
 pub mod string_to_path;
@@ -9,6 +9,21 @@ pub mod string_to_path;
 #[allow(dead_code)]
 pub struct Git {
   pub repo: Repository,
+  // pub state: RepositoryState,
+}
+
+pub enum RepoState {
+  Clean,
+  Merging,
+  Rebasing,
+  RebaseMerge,
+  SingleCherryPick,
+  MultiCherryPick,
+  SingleRevert,
+  MultiRevert,
+  Bisect,
+  ApplyingMailBox,
+  MailBoxOrRebase,
 }
 
 /// Precidence : 1st

@@ -1,9 +1,12 @@
+use crate::git;
 use crate::git::Head;
 use crate::git::Local;
+use crate::git::RepoState;
 use crate::git::Upstream;
 
 use crate::git::Git;
-use git2::{ ErrorCode, Repository};
+use git2::RepositoryState;
+use git2::{ErrorCode, Repository};
 #[allow(dead_code)]
 impl Git {
   /// Retuns enum `Head`.
@@ -29,6 +32,23 @@ impl Git {
 
       // This displays serious to resolve errors.
       Err(e) => Ok(Head::Error(e.to_string())),
+    }
+  }
+
+  pub fn get_repo_state(repo: &Repository) -> RepoState {
+    let state = repo.state();
+    match &state {
+      RepositoryState::Clean => RepoState::Clean,
+      RepositoryState::Merge => RepoState::Merging,
+      RepositoryState::Revert => RepoState::SingleRevert,
+      RepositoryState::RevertSequence => RepoState::MultiRevert,
+      RepositoryState::CherryPick => RepoState::SingleCherryPick,
+      RepositoryState::CherryPickSequence => RepoState::MultiCherryPick,
+      RepositoryState::RebaseMerge => RepoState::RebaseMerge,
+      RepositoryState::Rebase | RepositoryState::RebaseInteractive => RepoState::Rebasing,
+      RepositoryState::Bisect => RepoState::Bisect,
+      RepositoryState::ApplyMailbox => RepoState::ApplyingMailBox,
+      RepositoryState::ApplyMailboxOrRebase => RepoState::MailBoxOrRebase,
     }
   }
 
@@ -79,8 +99,5 @@ impl Git {
       ),
       _ => Ok("Nil".to_string()),
     }
-  }
-
-  pub fn unk(){
   }
 }
