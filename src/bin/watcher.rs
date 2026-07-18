@@ -1,27 +1,32 @@
 use std::{
-  path::Path,
-  sync::{Arc, atomic::{AtomicBool, Ordering}},
+  sync::{
+    Arc,
+    atomic::{AtomicBool, Ordering},
+  },
   time::Duration,
 };
 
-use notify_debouncer_full::{DebounceEventHandler, DebounceEventResult, new_debouncer};
+use notify_debouncer_full::{DebounceEventResult, new_debouncer};
 use pugit::git::Git;
 
 fn main() -> anyhow::Result<()> {
   let dr1_changed = Arc::new(AtomicBool::new(false));
   let file_changed = Arc::new(AtomicBool::new(false));
 
+  let dir1_cloned = Arc::clone(&dr1_changed);
+  let file_cloned = Arc::clone(&file_changed);
+
   let mut debouncer = new_debouncer(
     Duration::from_millis(500),
     None,
-    |result: DebounceEventResult| match result {
+    move |result: DebounceEventResult| match result {
       Ok(events) => {
         for debounced in events {
           for path in &debounced.event.paths {
             if path.starts_with(".git") {
-              dr1_changed.store(true, Ordering::Release);
+              dir1_cloned.store(true, Ordering::Release);
             } else if path.starts_with("src") {
-              file_changed.store(true, Ordering::Release);
+              file_cloned.store(true, Ordering::Release);
             }
           }
         }
