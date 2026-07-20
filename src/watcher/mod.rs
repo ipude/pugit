@@ -1,19 +1,17 @@
-#[allow(dead_code)]
-enum Signal {
-  Head,
-  Index,
-  RefHeads,
-  RefTags,
-  PackedRef,
-}
+use std::sync::atomic::AtomicBool;
+
+pub mod core;
 
 #[allow(dead_code)]
-struct BooleanInterpreter {
-  head_chng: bool,
-  index_chng: bool,
-  refheads_chng: bool,
-  reftags_chng: bool,
-  packedref_chng: bool,
+#[derive(Default)]
+pub struct WatchSignals {
+  head_changed: AtomicBool,
+  orig_head_changed: AtomicBool,
+  config_changed: AtomicBool,
+  description_changed: AtomicBool,
+  index_changed: AtomicBool,
+  packed_refs_changed: AtomicBool,
+  refs_head_changed: AtomicBool,
+  refs_tags_changed: AtomicBool,
+  refs_remotes_changed: AtomicBool,
 }
-
-
