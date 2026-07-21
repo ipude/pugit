@@ -1,7 +1,5 @@
 use std::sync::atomic::AtomicBool;
-
 pub mod core;
-
 #[allow(dead_code)]
 #[derive(Default)]
 pub struct WatchSignals {

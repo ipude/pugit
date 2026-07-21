@@ -49,7 +49,6 @@ fn debounced_watcher() -> anyhow::Result<()> {
             .store(true, std::sync::atomic::Ordering::Relaxed),
           Some("ORIG_HEAD") => signals.orig_head_changed.store(true, Ordering::Relaxed),
           Some("config") => signals.config_changed.store(true, Ordering::Relaxed),
-          Some("description") => signals.description_changed.store(true, Ordering::Relaxed),
           Some("index") => signals.index_changed.store(true, Ordering::Relaxed),
           Some("packed-refs") => signals.packed_refs_changed.store(true, Ordering::Relaxed),
           _ => {}
@@ -58,30 +57,20 @@ fn debounced_watcher() -> anyhow::Result<()> {
     }
   })?;
 
-  for i in [
-    "HEAD",
-    "ORIG_HEAD",
-    "config",
-    "description",
-    "index",
-    "packed-refs",
-  ] {
-    debouncer
-      .watcher()
-      .watch(&repo.join(i), notify::RecursiveMode::NonRecursive)?;
+  for i in ["HEAD", "ORIG_HEAD", "config", "index", "packed-refs"] {
+    if repo.join(i).try_exists()? {
+      debouncer
+        .watcher()
+        .watch(&repo.join(i), notify::RecursiveMode::NonRecursive)?;
+    }
   }
 
-  debouncer
-    .watcher()
-    .watch(&repo.join("refs/heads/"), notify::RecursiveMode::Recursive)?;
-
-  debouncer
-    .watcher()
-    .watch(&repo.join("refs/tags/"), notify::RecursiveMode::Recursive)?;
-
-  debouncer.watcher().watch(
-    &repo.join("refs/remotes/"),
-    notify::RecursiveMode::Recursive,
-  )?;
+  for j in ["refs/heads/", "refs/tags/", "refs/remotes"] {
+    if repo.join(j).try_exists()? {
+      debouncer
+        .watcher()
+        .watch(&repo.join(j), notify::RecursiveMode::Recursive)?;
+    }
+  }
   Ok(())
 }
