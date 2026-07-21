@@ -83,7 +83,7 @@ impl WatchSignals {
 
           tx.send(Ok(())).ok();
           // parks it in bg
-          std::thread::park(); 
+          std::thread::park();
           Ok(())
         })();
 
