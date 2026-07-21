@@ -1,4 +1,3 @@
-use crate::git;
 use crate::git::Head;
 use crate::git::Local;
 use crate::git::RepoState;

@@ -1,4 +1,4 @@
-use git2::{Branch, Commit, Reference, Repository, RepositoryState};
+use git2::{Branch, Commit, Reference, Repository};
 
 pub mod current;
 pub mod string_to_path;
