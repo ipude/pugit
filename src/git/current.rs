@@ -89,13 +89,10 @@ impl Git {
   ///       Upstream -> `origin/main`
   pub fn get_current_upstream(current: &Local) -> anyhow::Result<String> {
     match &current {
-      Local::Branch(local_branch) => Ok(
-        local_branch
-          .upstream()?
-          .name()?
-          .unwrap_or("<No Remote>")
-          .to_string(),
-      ),
+      Local::Branch(local_branch) => Ok(match local_branch.upstream() {
+        Ok(k) => k.name()?.unwrap_or("<No Remote>").to_string(),
+        Err(e) => e.to_string(),
+      }),
       _ => Ok("Nil".to_string()),
     }
   }

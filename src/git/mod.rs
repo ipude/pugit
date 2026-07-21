@@ -2,6 +2,7 @@ use git2::{Branch, Commit, Reference, Repository};
 
 pub mod current;
 pub mod string_to_path;
+pub mod refresh;
 
 /// Precidence : 0
 /// Core struct -> holds expensive vars

@@ -6,19 +6,19 @@ use std::{
   time::Duration,
 };
 
+use crate::git::Git;
 use notify_debouncer_mini::{DebounceEventResult, new_debouncer};
-use pugit::git::Git;
 
 #[derive(Default)]
 pub struct WatchSignals {
-  head_changed: AtomicBool,
-  orig_head_changed: AtomicBool,
-  config_changed: AtomicBool,
-  index_changed: AtomicBool,
-  packed_refs_changed: AtomicBool,
-  refs_head_changed: AtomicBool,
-  refs_tags_changed: AtomicBool,
-  refs_remotes_changed: AtomicBool,
+  pub head_changed: AtomicBool,
+  pub orig_head_changed: AtomicBool,
+  pub config_changed: AtomicBool,
+  pub index_changed: AtomicBool,
+  pub packed_refs_changed: AtomicBool,
+  pub refs_head_changed: AtomicBool,
+  pub refs_tags_changed: AtomicBool,
+  pub refs_remotes_changed: AtomicBool,
 }
 
 impl WatchSignals {
@@ -82,7 +82,7 @@ impl WatchSignals {
           }
 
           tx.send(Ok(())).ok();
-          // parks it in bg
+          // the thread is now parked
           std::thread::park();
           Ok(())
         })();
