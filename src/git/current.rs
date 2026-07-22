@@ -9,26 +9,39 @@ use git2::{ErrorCode, Repository};
 #[allow(dead_code)]
 impl Git {
   /// Retuns enum `Head`.
-  pub fn get_current_head(repo: &Repository) -> anyhow::Result<Head, anyhow::Error> {
-    match repo.head() {
+  pub fn get_current_head(&mut self) -> anyhow::Result<Head, anyhow::Error> {
+    match self.repo.head() {
       // A head (latest commit) can point either to a Branch say Main or to a commit(only if is detached) so :
       Ok(head) => {
         if head.is_branch() {
+          self.check.head.is_head = true;
           Ok(Head::Refrence(head.name()?.to_string()))
         } else {
           match head.target() {
-            Some(oid) => Ok(Head::Detached(repo.find_commit(oid)?.id())),
-            None => Ok(Head::Error(
-              "Detached HEAD but points to no Commit.".to_string(),
-            )),
+            Some(oid) => {
+              self.check.head.is_detached = true;
+              Ok(Head::Detached(self.repo.find_commit(oid)?.id()))
+            }
+            None => {
+              self.check.head.is_detached_no_commit = true;
+              Ok(Head::Error(
+                "Detached HEAD but points to no Commit.".to_string(),
+              ))
+            }
           }
         }
       }
       // This is done to tell user that the Branch is unborn.
-      Err(e) if e.code() == ErrorCode::UnbornBranch => Ok(Head::Unborn),
+      Err(e) if e.code() == ErrorCode::UnbornBranch => {
+        self.check.head.is_unborn = true;
+        Ok(Head::Unborn)
+      }
 
       // This displays serious to resolve errors.
-      Err(e) => Ok(Head::Error(e.to_string())),
+      Err(e) => {
+        self.check.head.is_error = true;
+        Ok(Head::Error(e.to_string()))
+      }
     }
   }
 
@@ -49,22 +62,14 @@ impl Git {
     }
   }
 
-  pub fn get_current_local_branch<'repo>(
-    repo: &'repo Repository,
-    head_state: &Head,
-  ) -> Local<'repo> {
-    match head_state {
-      Head::Refrence(string) => {
-        // We give priority to Local Branch when it comes to look at current branch.
-        // If current branch contains a remote ref then we can later using the name find the remote branch.
-        // Moroever all main code lives on Local hence it worths checking more than Remote.
-        match repo.find_branch(string.shorthand().unwrap(), git2::BranchType::Local) {
-          Ok(b) => Local::Branch(b),
-          Err(e) => Local::Error(e.to_string()),
-        }
-      }
-      _ => Local::Error("The Head::Refrence(refrence) was likely invalid".to_string()),
-    }
+  pub fn get_current_local_branch<'repo>(&mut self, repo: &'repo Repository) {
+    if self.check.head.is_head {}
+    // match repo.find_branch(string.shorthand().unwrap(), git2::BranchType::Local) {
+    //   Ok(b) => Local::Branch(b),
+    //   Err(e) => Local::Error(e.to_string()),
+    // }
+    // }
+    // Local::Error("The Head::Refrence(refrence) was likely invalid".to_string()),
   }
 
   /// Get latest oid of the local branch which has been pushed to the underlying remote.
@@ -100,7 +105,7 @@ impl Git {
   pub fn ahead_behind(repo: &Repository, head: &Head, local: &Local) -> anyhow::Result<()> {
     match &head {
       Head::Refrence(head) => {
-        let local_oid = head.target().unwrap();
+        // let local_oid = head.target().unwrap();
         let upstream_oid = Git::get_current_upstream(&local);
       }
       _ => {}
