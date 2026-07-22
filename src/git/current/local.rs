@@ -9,6 +9,19 @@ pub enum Local {
   None,
 }
 
+#[allow(dead_code)]
+impl Local {
+  pub fn is_branch(&self) -> bool {
+    matches!(self, Local::Branch(_))
+  }
+  pub fn is_error(&self) -> bool {
+    matches!(self, Local::Error(_))
+  }
+  pub fn is_none(&self) -> bool {
+    matches!(self, Local::None)
+  }
+}
+
 impl Git {
   pub fn get_current_local_branch(head_ref: &Head, repo: &Repository) -> anyhow::Result<Local> {
     match &head_ref {
