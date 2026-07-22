@@ -1,4 +1,4 @@
-use pugit::git::{Git};
+use pugit::git::Git;
 
 fn main() -> anyhow::Result<()> {
   let git = Git::new("~/impl/rust/pugit/")?;

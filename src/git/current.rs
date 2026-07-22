@@ -1,10 +1,7 @@
 use crate::git::Head;
-use crate::git::Local;
-use crate::git::RepoState;
-use crate::git::Upstream;
 
 use crate::git::Git;
-use git2::RepositoryState;
+use crate::git::local::Local;
 use git2::{ErrorCode, Repository};
 #[allow(dead_code)]
 impl Git {
@@ -32,63 +29,7 @@ impl Git {
     }
   }
 
-  pub fn get_repo_state(repo: &Repository) -> RepoState {
-    let state = repo.state();
-    match &state {
-      RepositoryState::Clean => RepoState::Clean,
-      RepositoryState::Merge => RepoState::Merging,
-      RepositoryState::Revert => RepoState::SingleRevert,
-      RepositoryState::RevertSequence => RepoState::MultiRevert,
-      RepositoryState::CherryPick => RepoState::SingleCherryPick,
-      RepositoryState::CherryPickSequence => RepoState::MultiCherryPick,
-      RepositoryState::RebaseMerge => RepoState::RebaseMerge,
-      RepositoryState::Rebase | RepositoryState::RebaseInteractive => RepoState::Rebasing,
-      RepositoryState::Bisect => RepoState::Bisect,
-      RepositoryState::ApplyMailbox => RepoState::ApplyingMailBox,
-      RepositoryState::ApplyMailboxOrRebase => RepoState::MailBoxOrRebase,
-    }
-  }
-
-  pub fn get_current_local_branch<'repo>(&mut self, repo: &'repo Repository) {
-    // if self.check.head.is_head {}
-    // match repo.find_branch(string.shorthand().unwrap(), git2::BranchType::Local) {
-    //   Ok(b) => Local::Branch(b),
-    //   Err(e) => Local::Error(e.to_string()),
-    // }
-    // }
-    // Local::Error("The Head::Refrence(refrence) was likely invalid".to_string()),
-  }
-
   /// Get latest oid of the local branch which has been pushed to the underlying remote.
-  pub fn get_oid_current<'repo>(
-    repo: &'repo Repository,
-    current: &Local,
-  ) -> anyhow::Result<Upstream<'repo>, anyhow::Error> {
-    match current {
-      Local::Branch(b) => match b.upstream() {
-        Ok(localbranch) => Ok(Upstream::Commit(
-          repo.find_commit(localbranch.get().target().unwrap())?,
-        )),
-        Err(e) => Ok(Upstream::Error(e.to_string())),
-      },
-      Local::Error(error) => Ok(Upstream::Error(error.to_string())),
-    }
-  }
-
-  /// This will return the `refs/remote/upstream` for current local branch.
-  /// E.g : Local branch -> `main`
-  ///       Upstream -> `origin/main`
-  /// branch_name.upstream()? tells which Remote branch do Local one is tracking?
-  pub fn get_current_upstream<'repo>(current: &Local<'repo>) -> Upstream<'repo> {
-    match &current {
-      Local::Branch(local_branch) => match local_branch.upstream() {
-        Ok(k) => Upstream::Branch(k),
-        Err(e) => Upstream::Error(e.to_string()),
-      },
-      _ => Upstream::None,
-    }
-  }
-
   pub fn ahead_behind(repo: &Repository, head: &Head, local: &Local) -> anyhow::Result<()> {
     match &head {
       Head::Refrence(head) => {
