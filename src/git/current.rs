@@ -9,17 +9,15 @@ use git2::{ErrorCode, Repository};
 #[allow(dead_code)]
 impl Git {
   /// Retuns enum `Head`.
-  pub fn get_current_head<'repo>(
-    repo: &'repo Repository,
-  ) -> anyhow::Result<Head<'repo>, anyhow::Error> {
+  pub fn get_current_head(repo: &Repository) -> anyhow::Result<Head, anyhow::Error> {
     match repo.head() {
       // A head (latest commit) can point either to a Branch say Main or to a commit(only if is detached) so :
       Ok(head) => {
         if head.is_branch() {
-          Ok(Head::Refrence(head))
+          Ok(Head::Refrence(head.name()?.to_string()))
         } else {
           match head.target() {
-            Some(oid) => Ok(Head::Detached(repo.find_commit(oid)?)),
+            Some(oid) => Ok(Head::Detached(repo.find_commit(oid)?.id())),
             None => Ok(Head::Error(
               "Detached HEAD but points to no Commit.".to_string(),
             )),
@@ -51,18 +49,16 @@ impl Git {
     }
   }
 
-  /// Validity of `Branch<'_>` depends on `Repository`.
-  /// Vulnerable to staling.
   pub fn get_current_local_branch<'repo>(
     repo: &'repo Repository,
     head_state: &Head,
   ) -> Local<'repo> {
     match head_state {
-      Head::Refrence(refrence) => {
+      Head::Refrence(string) => {
         // We give priority to Local Branch when it comes to look at current branch.
         // If current branch contains a remote ref then we can later using the name find the remote branch.
         // Moroever all main code lives on Local hence it worths checking more than Remote.
-        match repo.find_branch(refrence.shorthand().unwrap(), git2::BranchType::Local) {
+        match repo.find_branch(string.shorthand().unwrap(), git2::BranchType::Local) {
           Ok(b) => Local::Branch(b),
           Err(e) => Local::Error(e.to_string()),
         }
