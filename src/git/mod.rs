@@ -8,6 +8,7 @@ pub mod string_to_path;
 pub struct Git {
   pub repo: Repository,
   pub check: Check,
+  pub head: Head,
 }
 
 // Helps doing if else based checks when ever we dont want to match Enum's result.
@@ -55,6 +56,21 @@ pub enum Head {
   Detached(Oid),
   Error(String),
   Unborn,
+}
+
+impl Head {
+  pub fn is_refrence(&self) -> bool {
+    matches!(self, Head::Refrence(_))
+  }
+  pub fn is_detached(&self) -> bool {
+    matches!(self, Head::Detached(_))
+  }
+  pub fn is_error(&self) -> bool {
+    matches!(self, Head::Error(_))
+  }
+  pub fn is_unborn(&self) -> bool {
+    matches!(self, Head::Unborn)
+  }
 }
 
 #[allow(dead_code)]
