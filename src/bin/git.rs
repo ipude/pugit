@@ -1,11 +1,9 @@
-use pugit::git::{Git, Upstream};
+use pugit::git::{Git};
 
 fn main() -> anyhow::Result<()> {
-  let mut git = Git::new("~/impl/rust/pugit/")?;
+  let git = Git::new("~/impl/rust/pugit/")?;
 
-  let head = git.get_current_head()?;
-
-  if git.check.head.is_head {
+  if git.head.is_refrence() {
     println!("It is head")
   }
   Ok(())

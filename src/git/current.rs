@@ -9,39 +9,26 @@ use git2::{ErrorCode, Repository};
 #[allow(dead_code)]
 impl Git {
   /// Retuns enum `Head`.
-  pub fn get_current_head(&mut self) -> anyhow::Result<Head, anyhow::Error> {
-    match self.repo.head() {
+  pub fn get_current_head(repo: &Repository) -> anyhow::Result<Head, anyhow::Error> {
+    match repo.head() {
       // A head (latest commit) can point either to a Branch say Main or to a commit(only if is detached) so :
       Ok(head) => {
         if head.is_branch() {
-          self.check.head.is_head = true;
           Ok(Head::Refrence(head.name()?.to_string()))
         } else {
           match head.target() {
-            Some(oid) => {
-              self.check.head.is_detached = true;
-              Ok(Head::Detached(self.repo.find_commit(oid)?.id()))
-            }
-            None => {
-              self.check.head.is_detached_no_commit = true;
-              Ok(Head::Error(
-                "Detached HEAD but points to no Commit.".to_string(),
-              ))
-            }
+            Some(oid) => Ok(Head::Detached(repo.find_commit(oid)?.id())),
+            None => Ok(Head::Error(
+              "Detached HEAD but points to no Commit.".to_string(),
+            )),
           }
         }
       }
       // This is done to tell user that the Branch is unborn.
-      Err(e) if e.code() == ErrorCode::UnbornBranch => {
-        self.check.head.is_unborn = true;
-        Ok(Head::Unborn)
-      }
+      Err(e) if e.code() == ErrorCode::UnbornBranch => Ok(Head::Unborn),
 
       // This displays serious to resolve errors.
-      Err(e) => {
-        self.check.head.is_error = true;
-        Ok(Head::Error(e.to_string()))
-      }
+      Err(e) => Ok(Head::Error(e.to_string())),
     }
   }
 
@@ -63,7 +50,7 @@ impl Git {
   }
 
   pub fn get_current_local_branch<'repo>(&mut self, repo: &'repo Repository) {
-    if self.check.head.is_head {}
+    // if self.check.head.is_head {}
     // match repo.find_branch(string.shorthand().unwrap(), git2::BranchType::Local) {
     //   Ok(b) => Local::Branch(b),
     //   Err(e) => Local::Error(e.to_string()),
