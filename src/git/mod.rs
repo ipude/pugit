@@ -22,6 +22,7 @@ impl Git {
       let local_branch = &local.to_branch(&repo)?.unwrap();
       Git::get_upstream(&local, local_branch)?
     };
+    let _upstream_oid = Git::get_upstream_oid(&repo, &local, &local.to_branch(&repo)?.unwrap())?;
     Ok(Self {
       repo,
       head,

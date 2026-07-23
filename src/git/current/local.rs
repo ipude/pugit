@@ -23,7 +23,10 @@ impl Local {
 }
 
 impl Local {
-  pub fn to_branch<'repo>(&self, repo: &'repo Repository) -> anyhow::Result<Option<Branch<'repo>>, anyhow::Error> {
+  pub fn to_branch<'repo>(
+    &self,
+    repo: &'repo Repository,
+  ) -> anyhow::Result<Option<Branch<'repo>>, anyhow::Error> {
     match self {
       Local::Branch(name) => Ok(Some(repo.find_branch(name, git2::BranchType::Local)?)),
       _ => Ok(None),
