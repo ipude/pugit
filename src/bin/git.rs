@@ -10,5 +10,8 @@ fn main() -> anyhow::Result<()> {
       Local::None => println!("None"),
     }
   }
+
+  let branch = git.local.to_branch(&git.repo)?;
+  println!("{}", branch.unwrap().name()?.unwrap());
   Ok(())
 }

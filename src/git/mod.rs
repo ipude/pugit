@@ -19,11 +19,8 @@ impl Git {
     let head = Git::get_current_head(&repo)?;
     let local = Git::get_current_local_branch(&head, &repo)?;
     let upstream = {
-      let local_branch = match &local {
-        Local::Branch(name) => Some(repo.find_branch(name, git2::BranchType::Local)?),
-        _ => None,
-      };
-      Git::get_upstream(&local, local_branch.as_ref().unwrap())?
+      let local_branch = &local.to_branch(&repo)?.unwrap();
+      Git::get_upstream(&local, local_branch)?
     };
     Ok(Self {
       repo,
