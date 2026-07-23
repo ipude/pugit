@@ -22,7 +22,7 @@ impl Git {
         repo.find_commit(branch.get().target().unwrap())?.id(),
       ));
     } else {
-      return Ok(Upstream::None);
+      Ok(Upstream::None)
     }
   }
 
@@ -32,7 +32,7 @@ impl Git {
         branch.upstream()?.name()?.unwrap().to_string(),
       ));
     } else {
-      return Ok(Upstream::None);
+      Ok(Upstream::None)
     }
   }
 }
