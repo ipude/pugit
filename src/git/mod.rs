@@ -18,11 +18,16 @@ impl Git {
     let repo = Repository::open(Git::string_to_path(path)?)?;
     let head = Git::get_current_head(&repo)?;
     let local = Git::get_current_local_branch(&head, &repo)?;
-    let upstream = {
+    let _upstream_constructor_1 = {
       let local_branch = &local.to_branch(&repo)?.unwrap();
       Git::get_upstream(&local, local_branch)?
     };
-    let _upstream_oid = Git::get_upstream_oid(&repo, &local, &local.to_branch(&repo)?.unwrap())?;
+    let upstream = Git::get_upstream_oid(&repo, &local, &_upstream_constructor_1.to_branch(&repo)?.unwrap())?;
+
+    match &upstream {
+      Upstream::Oid(o)=> println!("{o}"),
+      _ => println!("no oid")
+    }
     Ok(Self {
       repo,
       head,

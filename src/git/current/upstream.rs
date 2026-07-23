@@ -3,6 +3,7 @@ use git2::{Branch, Oid, Repository};
 use crate::git::{Git, current::local::Local};
 
 #[allow(dead_code)]
+// Will be made a structure.
 pub enum Upstream {
   Branch(String),
   Oid(Oid),
@@ -52,7 +53,7 @@ impl Upstream {
     }
   }
   pub fn get_oid(&self) -> Option<Oid> {
-    if self.is_branch() {
+    if self.contains_oid() {
       match self {
         Upstream::Oid(oid) => Some(oid.to_owned()),
         _ => None,
