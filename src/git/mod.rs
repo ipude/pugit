@@ -19,7 +19,7 @@ impl Git {
     let head = Git::get_current_head(&repo)?;
     let local = Git::get_current_local_branch(&head, &repo)?;
     let upstream = {
-      let local_branch = &local.to_branch(&repo)?.unwrap();
+      let local_branch = &local.to_branch(&repo)?.expect("No such Local Branch");
       Upstream::new(local_branch)?
     };
     Ok(Self {

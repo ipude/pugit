@@ -1,21 +1,21 @@
 use pugit::git::{
   Git,
   current::{
-    local::Local,
-    upstream::{self, Upstream},
+    upstream::{Upstream},
   },
 };
 
 fn main() -> anyhow::Result<()> {
-  let git = Git::new("~/impl/rust/pugit/")?;
+  let git = Git::new("~/impl/rust/pucrypt/")?;
 
   match &git.upstream {
+    Upstream::Found(name) => {
+      let oid = Upstream::get_oid(&git.repo, &Upstream::to_branch(name, &git.repo)?)?;
+      println!("upstream branch: {name}\nUpstream Oid: {oid}")
+    },
+    Upstream::NotFound => println!("no upstream configured"),
     Upstream::Error(e) => println!("upstream error: {e}"),
-    Upstream::None => println!("no upstream configured"),
-    Upstream::Branch(name) => println!("upstream branch: {name}"),
-    Upstream::Oid(oid) => println!("upstream oid: {oid}"),
   }
 
-  git.upstream.get_oid();
   Ok(())
 }
