@@ -23,7 +23,7 @@ impl Git {
   pub fn new(path: &str) -> anyhow::Result<Self> {
     let repo = Repository::open(Git::string_to_path(path)?)?;
     let head = Git::get_current_head(&repo)?;
-    let local = Git::get_current_local_branch(&head, &repo)?;
+    let local = Git::get_local(&head, &repo)?;
     let upstream = {
       let local_branch = &local.to_branch(&repo)?.expect("No such Local Branch");
       Upstream::new(local_branch)?
