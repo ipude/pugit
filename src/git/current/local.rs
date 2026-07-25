@@ -1,6 +1,6 @@
 use git2::{Branch, Repository};
 
-use crate::git::{Git, current::head::Head};
+use crate::git::current::head::Head;
 
 /// Returns either of :
 /// `Branch(String)` -> Branch's name
@@ -13,11 +13,11 @@ use crate::git::{Git, current::head::Head};
 /// `.is_error()`
 /// `.is_none()`
 ///
-/// ``` 
+/// ```
 /// if &git.local.is_branch() {
 ///   let local_branch = local.to_branch()?.unwrap();
 /// }
-///``` 
+///```
 #[allow(dead_code)]
 pub enum Local {
   Branch(String),
@@ -59,11 +59,11 @@ impl Local {
   }
 }
 
-impl Git {
+impl Local {
   /// Returns the Local enum -- very unlikely to fail
   /// Needs a rewrite including Head's rewrite.
   /// Everything else is fine.
-  pub fn get_local(head_ref: &Head, repo: &Repository) -> anyhow::Result<Local> {
+  pub fn new(head_ref: &Head, repo: &Repository) -> anyhow::Result<Local> {
     match &head_ref {
       Head::Refrence(name) => match repo.find_branch(name, git2::BranchType::Local) {
         Ok(branch) => Ok(Local::Branch(branch.name()?.unwrap().to_string())),
