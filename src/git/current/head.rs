@@ -2,6 +2,11 @@ use crate::git::Git;
 use git2::Oid;
 use git2::{ErrorCode, Repository};
 
+/// Returns either of :
+/// `Refrence(String)` -- Attached head's branch name
+/// `Detached(Oid)` -- Detached head's oid
+/// `Error(String)` -- Real error
+/// `Unborn` -- When is unborn.
 #[allow(dead_code)]
 pub enum Head {
   Refrence(String),
