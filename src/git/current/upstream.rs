@@ -12,7 +12,7 @@ pub enum Upstream {
 // Public method
 #[allow(dead_code)]
 impl Upstream {
-  /// Gives a new Upstream value 
+  /// Gives a new Upstream value
   pub fn new(local_branch: &Branch) -> anyhow::Result<Upstream, anyhow::Error> {
     Self::get_upstream(local_branch)
   }
@@ -29,7 +29,7 @@ impl Upstream {
     );
   }
 
-  /// Converts upstream branch's name to Branch<'_> 
+  /// Converts upstream branch's name to Branch<'_>
   pub fn to_branch<'repo>(
     upstream_branch_name: &str,
     repo: &'repo Repository,
