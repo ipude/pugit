@@ -1,6 +1,7 @@
 use git2::Repository;
 
-/// Repository's config
+/// Repository's config.
+#[allow(dead_code)]
 pub struct Config {
   pub config: Vec<(String, String)>,
 }
