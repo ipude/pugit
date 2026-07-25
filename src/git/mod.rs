@@ -1,6 +1,11 @@
 use git2::Repository;
 
-use crate::git::current::{head::Head, local::Local, upstream::Upstream};
+use crate::git::current::{
+  config::{self, Config},
+  head::Head,
+  local::Local,
+  upstream::Upstream,
+};
 pub mod current;
 pub mod string_to_path;
 
@@ -10,6 +15,7 @@ pub struct Git {
   pub head: Head,
   pub local: Local,
   pub upstream: Upstream,
+  pub config: Config,
 }
 
 #[allow(dead_code)]
@@ -22,11 +28,13 @@ impl Git {
       let local_branch = &local.to_branch(&repo)?.expect("No such Local Branch");
       Upstream::new(local_branch)?
     };
+    let config = config::Config::new(&repo)?;
     Ok(Self {
       repo,
       head,
       local,
       upstream,
+      config,
     })
   }
 }
