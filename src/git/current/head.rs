@@ -1,4 +1,3 @@
-use crate::git::Git;
 use git2::Oid;
 use git2::{ErrorCode, Repository};
 
@@ -31,12 +30,22 @@ impl Head {
   }
 }
 
+impl Head {
+  pub fn get_value(&self) -> Option<String> {
+    match self {
+      Head::Refrence(name) => Some(name.to_string()),
+      _ => None,
+    }
+  }
+}
+
 #[allow(dead_code)]
-impl Git {
+impl Head {
   /// Retuns enum `Head`.
-  pub fn get_current_head(repo: &Repository) -> anyhow::Result<Head, anyhow::Error> {
+  pub fn new(repo: &Repository) -> anyhow::Result<Head, anyhow::Error> {
     match repo.head() {
       Ok(head) => {
+        // Note: This is repo.head()?.is_branch()
         if head.is_branch() {
           Ok(Head::Refrence(head.shorthand()?.to_string()))
         } else {
