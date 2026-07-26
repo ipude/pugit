@@ -22,7 +22,7 @@ pub struct Git {
 impl Git {
   pub fn new(path: &str) -> anyhow::Result<Self> {
     let repo = Repository::open(Git::string_to_path(path)?)?;
-    let head = Git::get_current_head(&repo)?;
+    let head = Head::new(&repo)?;
     let local = Local::new(&head, &repo)?;
     let upstream = {
       let local_branch = &local.to_branch(&repo)?.expect("No such Local Branch");

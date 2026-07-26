@@ -64,12 +64,13 @@ impl Local {
   /// Needs a rewrite including Head's rewrite.
   /// Everything else is fine.
   pub fn new(head_ref: &Head, repo: &Repository) -> anyhow::Result<Local> {
-    match &head_ref {
-      Head::Refrence(name) => match repo.find_branch(name, git2::BranchType::Local) {
+    if head_ref.is_refrence() {
+      match repo.find_branch(&head_ref.get_value().unwrap(), git2::BranchType::Local) {
         Ok(branch) => Ok(Local::Branch(branch.name()?.unwrap().to_string())),
         Err(e) => Ok(Local::Error(e.to_string())),
-      },
-      _ => Ok(Local::None),
+      }
+    } else {
+      Ok(Local::None)
     }
   }
 }
