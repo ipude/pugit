@@ -8,10 +8,10 @@ use crate::git::current::{
 };
 // ==========================
 
-// // //  //  //
+// ==========================
 pub mod current;
 pub mod string_to_path;
-// // //  //  //
+// ==========================
 
 /// Pugit's core data sturcture that holds almost all important Git things.
 #[allow(dead_code)]
