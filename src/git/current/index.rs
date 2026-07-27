@@ -36,7 +36,7 @@ impl FileStatus {
 
 #[allow(dead_code)]
 impl FileState {
-  fn new(repo: &Repository) -> anyhow::Result<Vec<FileStatus>> {
+  fn collect(repo: &Repository) -> anyhow::Result<Vec<FileStatus>> {
     let mut status_opts = git2::StatusOptions::new();
     status_opts
       .include_untracked(true)
