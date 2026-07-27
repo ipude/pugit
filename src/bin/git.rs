@@ -1,58 +1,106 @@
-use git2::{Repository, StatusOptions};
-use pugit::git::{
-  Git,
-  current::{index, upstream::Upstream},
-};
+use git2::{Repository, StatusOptions, Statuses};
+use pugit::git::Git;
 
-fn main() -> anyhow::Result<()> {
-  let git = Git::new("~/impl/rust/pugit/")?;
-
-  match &git.upstream {
-    Upstream::Found(name) => {
-      let oid = Upstream::get_oid(&git.repo, &Upstream::to_branch(name, &git.repo)?)?;
-      println!("upstream branch: {name}\nUpstream Oid: {oid}")
-    }
-    Upstream::NotFound => println!("no upstream configured"),
-    Upstream::Error(e) => println!("upstream error: {e}"),
+fn index_char(s: git2::Status) -> char {
+  use git2::Status;
+  if s.contains(Status::INDEX_NEW) {
+    'A'
+  } else if s.contains(Status::INDEX_MODIFIED) {
+    'M'
+  } else if s.contains(Status::INDEX_DELETED) {
+    'D'
+  } else if s.contains(Status::INDEX_RENAMED) {
+    'R'
+  } else if s.contains(Status::INDEX_TYPECHANGE) {
+    'T'
+  } else {
+    ' '
   }
+}
 
-  let mut opts = git2::StatusOptions::new();
+fn wt_char(s: git2::Status) -> char {
+  use git2::Status;
+  if s.contains(Status::WT_MODIFIED) {
+    'M'
+  } else if s.contains(Status::WT_DELETED) {
+    'D'
+  } else if s.contains(Status::WT_TYPECHANGE) {
+    'T'
+  } else if s.contains(Status::WT_RENAMED) {
+    'R'
+  } else {
+    ' '
+  }
+}
 
+fn conflict_code(index: &git2::Index, path: &str) -> Option<&'static str> {
+  for c in index.conflicts().ok()?.flatten() {
+    if c
+      .our
+      .as_ref()
+      .or(c.their.as_ref())
+      .or(c.ancestor.as_ref())
+      .map(|e| e.path == path.as_bytes())
+      != Some(true)
+    {
+      continue;
+    }
+    return Some(
+      match (c.ancestor.is_some(), c.our.is_some(), c.their.is_some()) {
+        (true, false, false) => "DD",
+        (false, true, false) => "AU",
+        (true, true, false) => "UD",
+        (false, false, true) => "UA",
+        (true, false, true) => "DU",
+        (false, true, true) => "AA",
+        (true, true, true) => "UU",
+        _ => "??",
+      },
+    );
+  }
+  None
+}
+
+fn get_statuses<'repo>(repo: &'repo Repository) -> anyhow::Result<Statuses<'repo>, anyhow::Error> {
+  let mut opts = StatusOptions::new();
   opts
     .include_untracked(true)
     .include_ignored(false)
+    .recurse_untracked_dirs(true)
+    .exclude_submodules(false)
     .renames_head_to_index(true)
     .renames_index_to_workdir(true)
-    .recurse_untracked_dirs(true);
+    .no_refresh(false);
 
-  let statuses = &git.repo.statuses(Some(&mut opts))?;
-  let mut modified = Vec::new();
-  let mut added = Vec::new();
-  let mut deleted = Vec::new();
-  let mut renamed = Vec::new();
-  let mut untracked = Vec::new();
+  Ok(repo.statuses(Some(&mut opts))?)
+}
+
+fn main() -> anyhow::Result<(), anyhow::Error> {
+  let git = Git::new("~/impl/rust/pugit/")?;
+  let repo = &git.repo;
+  let index = repo.index()?;
+  let statuses = get_statuses(repo)?;
 
   for entry in statuses.iter() {
+    let path = entry.path().unwrap_or("<invalid utf-8>");
     let status = entry.status();
-    let path = entry.path().unwrap_or("").to_string();
 
-    if status.is_wt_new() {
-      untracked.push(path);
-    } else if status.is_wt_modified() || status.is_index_modified() {
-      modified.push(path);
-    } else if status.is_index_new() {
-      added.push(path);
-    } else if status.is_wt_deleted() || status.is_index_deleted() {
-      deleted.push(path);
-    } else if status.is_wt_renamed() || status.is_index_renamed() {
-      renamed.push(path);
-    }
+    let code = if status.contains(git2::Status::WT_NEW)
+      && !status.intersects(
+        git2::Status::INDEX_NEW
+          | git2::Status::INDEX_MODIFIED
+          | git2::Status::INDEX_DELETED
+          | git2::Status::INDEX_RENAMED
+          | git2::Status::INDEX_TYPECHANGE,
+      ) {
+      "??".to_string()
+    } else if status.is_conflicted() {
+      conflict_code(&index, path).unwrap_or("UU").to_string()
+    } else {
+      format!("{}{}", index_char(status), wt_char(status))
+    };
+
+    println!("{code} {path}");
   }
-
-  println!("modified: {:#?}", modified);
-  println!("added: {:#?}", added);
-  println!("deleted:{:#?}", deleted);
-  println!("Untracked : {:#?}", untracked);
-  println!("Renamed : {:#?}", renamed);
   Ok(())
 }
