@@ -1,10 +1,7 @@
 // ==========================
 use git2::Repository;
 use crate::git::current::{
-  config::{self, Config},
-  head::Head,
-  local::Local,
-  upstream::Upstream,
+  config::{self, Config}, head::Head, index::FileStatus, local::Local, upstream::Upstream
 };
 // ==========================
 
@@ -21,6 +18,7 @@ pub struct Git {
   pub local: Local,
   pub upstream: Upstream,
   pub config: Config,
+  pub index: Vec<FileStatus>,
 }
 
 #[allow(dead_code)]
@@ -36,12 +34,14 @@ impl Git {
       Upstream::new(local_branch)?
     };
     let config = config::Config::new(&repo)?;
+    let index = FileStatus::new(&repo)?;
     Ok(Self {
       repo,
       head,
       local,
       upstream,
       config,
+      index,
     })
   }
 }
