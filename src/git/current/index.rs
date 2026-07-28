@@ -128,13 +128,8 @@ impl FileStatus {
     for entry in statuses.iter() {
       let path = entry.path().unwrap_or("<invalid utf-8>");
       let status = entry.status();
-      // if file status bitflag conatins bitflag WT_NEW and none of the bitflags related to Index intersects with underlying bitflags of status then return untracked file symbol(??)
-      //
-      // else
-
-      let code = Self::constructor(&status, &index, path);
       vector.push(FileStatus {
-        code,
+        code: Self::constructor(&status, &index, path),
         path: path.to_string(),
       });
     }
