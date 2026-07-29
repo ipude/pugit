@@ -1,18 +1,26 @@
 use git2::{Branch, Repository};
 
-fn ahead_from_current(repo: &Repository, local_branch: &Branch) -> anyhow::Result<(), anyhow::Error> {
-  let main = repo.find_branch("main", git2::BranchType::Local)?;
-  let new = repo.find_branch("new", git2::BranchType::Local)?;
+use crate::git::Git;
 
-  let (ahead, behind) =
-    repo.graph_ahead_behind(main.get().target().unwrap(), new.get().target().unwrap())?;
+#[allow(dead_code)]
+impl Git {
+  fn ahead_behind_from_current(
+    repo: &Repository,
+    local_branch: &Branch,
+  ) -> anyhow::Result<(), anyhow::Error> {
+    let main = repo.find_branch("main", git2::BranchType::Local)?;
+    let new = repo.find_branch("new", git2::BranchType::Local)?;
 
-  if ahead > behind {
-    println!(
-      "Branch: {} is ahead by {ahead} commits from  Branch: {}",
-      main.name()?.unwrap_or("<no name>").to_uppercase(),
-      new.name()?.unwrap_or("<no name>").to_uppercase()
-    )
+    let (ahead, behind) =
+      repo.graph_ahead_behind(main.get().target().unwrap(), new.get().target().unwrap())?;
+
+    if ahead > behind {
+      println!(
+        "Branch: {} is ahead by {ahead} commits from  Branch: {}",
+        main.name()?.unwrap_or("<no name>").to_uppercase(),
+        new.name()?.unwrap_or("<no name>").to_uppercase()
+      )
+    }
+    Ok(())
   }
-  Ok(())
 }
