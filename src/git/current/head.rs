@@ -1,4 +1,4 @@
-use git2::{Branch, Oid};
+use git2::Oid;
 use git2::{ErrorCode, Repository};
 
 /// This Enum contains -->
@@ -57,17 +57,11 @@ impl Head {
       _ => None,
     }
   }
-
 }
 
 #[allow(dead_code)]
 impl Head {
-  /// Retuns enum `Head`.
-  /// May return :
-  /// `Attached(String)` if head is a Branch.
-  /// `Detached(Oid)` if head is detached.
-  /// `Unborn` if head is unborn.
-  /// `Error` if somthing is wrong.
+  /// Generates the enum Head
   pub fn new(repo: &Repository) -> anyhow::Result<Head, anyhow::Error> {
     match repo.head() {
       Ok(head) => {
