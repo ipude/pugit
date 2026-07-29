@@ -1,14 +1,14 @@
-use git2::Oid;
+use git2::{Branch, Oid};
 use git2::{ErrorCode, Repository};
 
-/// Returns either of :
-/// `Branch(String)` -- Attached head's branch name
-/// `Detached(Oid)` -- Detached head's oid
-/// `Error(String)` -- Real error
-/// `Unborn` -- When head is unborn.
+/// This Enum contains -->
+/// Attached head's branch name -- `Attached(String)`
+/// Detached head's oid         -- `Detached(Oid)`   
+/// Important error             -- `Error(String)`   
+/// When head is unborn.        -- `Unborn`          
 #[allow(dead_code)]
 pub enum Head {
-  Branch(String),
+  Attached(String),
   Detached(Oid),
   Error(String),
   Unborn,
@@ -17,9 +17,9 @@ pub enum Head {
 // Match handeling.
 #[allow(dead_code)]
 impl Head {
-  /// Returns true if `Head::Branch(_)` matches.
+  /// Returns true if `Head::Attached(_)` matches.
   pub fn is_branch(&self) -> bool {
-    matches!(self, Head::Branch(_))
+    matches!(self, Head::Attached(_))
   }
   /// Returns true if `Head::Detached(_)` matches.
   pub fn is_detached(&self) -> bool {
@@ -33,24 +33,38 @@ impl Head {
   pub fn is_unborn(&self) -> bool {
     matches!(self, Head::Unborn)
   }
-}
 
-impl Head {
-  /// This function is intentionally made to give `Option<String>` i.e the name of `Head::Branch(name)` if it exists.
-  /// This may panic on `.unwrap()` if `Head::Branch()` is None.
-  pub fn get_value(&self) -> Option<String> {
+  /// Returns value of `Head::Attached(String)`
+  pub fn get_attached(&self) -> Option<String> {
     match self {
-      Head::Branch(name) => Some(name.to_string()),
+      Head::Attached(name) => Some(name.to_string()),
       _ => None,
     }
   }
+
+  /// Returns value of `Head::Detached(Oid)`
+  pub fn get_detached(&self) -> Option<Oid> {
+    match self {
+      Head::Detached(oid) => Some(*oid),
+      _ => None,
+    }
+  }
+
+  /// Returns value of `Head::Error(String)`
+  pub fn get_error(&self) -> Option<String> {
+    match self {
+      Head::Error(err) => Some(err.to_string()),
+      _ => None,
+    }
+  }
+
 }
 
 #[allow(dead_code)]
 impl Head {
   /// Retuns enum `Head`.
   /// May return :
-  /// `Branch(String)` if head is a branch.
+  /// `Attached(String)` if head is a Branch.
   /// `Detached(Oid)` if head is detached.
   /// `Unborn` if head is unborn.
   /// `Error` if somthing is wrong.
@@ -59,7 +73,7 @@ impl Head {
       Ok(head) => {
         if head.is_branch() {
           // Make sure it must be repo.shorthand()? not repo.name()?
-          Ok(Head::Branch(head.shorthand()?.to_string()))
+          Ok(Head::Attached(head.shorthand()?.to_string()))
         } else {
           match head.target() {
             Some(oid) => Ok(Head::Detached(repo.find_commit(oid)?.id())),
