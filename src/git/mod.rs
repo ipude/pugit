@@ -1,8 +1,12 @@
 // ==========================
-use git2::Repository;
 use crate::git::current::{
-  config::{self, Config}, head::Head, index::FileStatus, local::Local, upstream::Upstream
+  config::{self, Config},
+  head::Head,
+  index::FileStatus,
+  local::Local,
+  upstream::Upstream,
 };
+use git2::{Branch, Repository};
 // ==========================
 
 // ==========================
@@ -43,5 +47,15 @@ impl Git {
       config,
       index,
     })
+  }
+
+  /// Convert any valid `local` branch name into `Branch<'repo>` 
+  /// Will not find BranchType::Remote
+  /// Can fail if `Repository.find_branch(name, branch_type)` fails due to wrong name or or mismatched branch type.
+  pub fn to_branch_local<'repo>(
+    repo: &'repo Repository,
+    attached: &str,
+  ) -> anyhow::Result<Branch<'repo>, anyhow::Error> {
+    Ok(repo.find_branch(attached, git2::BranchType::Local)?)
   }
 }
