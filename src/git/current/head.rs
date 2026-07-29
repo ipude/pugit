@@ -14,7 +14,7 @@ pub enum Head {
   Unborn,
 }
 
-// Match handeling.
+// Helper functions for Head
 #[allow(dead_code)]
 impl Head {
   /// Returns true if `Head::Attached(_)` matches.
