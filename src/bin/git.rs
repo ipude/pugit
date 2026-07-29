@@ -23,10 +23,16 @@ fn main() -> anyhow::Result<(), anyhow::Error> {
   let main = git.repo.find_branch("main", git2::BranchType::Local)?;
   let new = git.repo.find_branch("new", git2::BranchType::Local)?;
 
-  let (ahead, behind) = git.repo.graph_ahead_behind(main.get().target().unwrap(), new.get().target().unwrap())?;
+  let (ahead, behind) = git
+    .repo
+    .graph_ahead_behind(main.get().target().unwrap(), new.get().target().unwrap())?;
 
   if ahead > behind {
-    println!("Branch: {} is ahead by {ahead} commits from  Branch: {}", main.name()?.unwrap_or("<no name>").to_uppercase(), new.name()?.unwrap_or("<no name>").to_uppercase())
+    println!(
+      "Branch: {} is ahead by {ahead} commits from  Branch: {}",
+      main.name()?.unwrap_or("<no name>").to_uppercase(),
+      new.name()?.unwrap_or("<no name>").to_uppercase()
+    )
   }
 
   Ok(())
