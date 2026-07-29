@@ -17,10 +17,37 @@ pub mod string_to_path;
 pub struct Git {
   pub repo: Repository,
   pub head: Head,
-  pub local: Local,
-  pub upstream: Upstream,
+  pub current: Current,
   pub config: Config,
   pub index: Vec<FileStatus>,
+}
+
+#[allow(dead_code)]
+pub struct Current {
+  pub current_branch: String,
+  pub current_upstream: String,
+}
+
+impl Current {
+  fn new(repo: &Repository, head: &Head) -> anyhow::Result<Self, anyhow::Error> {
+    let current_branch = if head.is_branch() {
+      let name = head.get_attached().unwrap();
+      Some(Git::to_branch_local(repo, &name)?)
+    } else {
+      None
+    };
+    let branch_name = current_branch
+      .as_ref()
+      .unwrap()
+      .name()?
+      .unwrap()
+      .to_string();
+    let current_upstream = Git::get_upstream(&current_branch.unwrap())?.unwrap();
+    Ok(Self {
+      current_branch: branch_name,
+      current_upstream,
+    })
+  }
 }
 
 #[allow(dead_code)]
@@ -28,24 +55,22 @@ impl Git {
   /// Compiles everything into a single structure.
   /// Can be used for Repowide refresh if called again.
   pub fn new(path: &str) -> anyhow::Result<Self> {
+    // Core initialization
     let repo = Repository::open(Git::string_to_path(path)?)?;
     let head = Head::new(&repo)?;
-    let current_branch_name = if head.is_branch() {
-      let name = head.get_attached().unwrap();
-      Git::to_branch_local(&repo, &name)?;
-    };
-    let local = Local::new(&head, &repo)?;
-    let upstream = {
-      let local_branch = &local.to_branch(&repo)?.expect("No such Local Branch");
-      Upstream::new(local_branch)?
-    };
+
+    // Holds current value
+    let current = Current::new(&repo, &head)?;
+
+    // Config and Index
     let config = config::Config::new(&repo)?;
     let index = FileStatus::new(&repo)?;
+
+    // Return
     Ok(Self {
       repo,
       head,
-      local,
-      upstream,
+      current,
       config,
       index,
     })
