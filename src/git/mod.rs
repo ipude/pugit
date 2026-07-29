@@ -3,8 +3,6 @@ use crate::git::current::{
   config::{self, Config},
   head::Head,
   index::FileStatus,
-  local::Local,
-  upstream::Upstream,
 };
 use git2::{Branch, Oid, Repository};
 // ==========================
@@ -32,6 +30,10 @@ impl Git {
   pub fn new(path: &str) -> anyhow::Result<Self> {
     let repo = Repository::open(Git::string_to_path(path)?)?;
     let head = Head::new(&repo)?;
+    let current_branch_name = if head.is_branch() {
+      let name = head.get_attached().unwrap();
+      Git::to_branch_local(&repo, &name)?;
+    };
     let local = Local::new(&head, &repo)?;
     let upstream = {
       let local_branch = &local.to_branch(&repo)?.expect("No such Local Branch");
@@ -52,18 +54,18 @@ impl Git {
   /// Global helper function to tackle `String to Branch<'repo>` cases through Git
   /// Convert any valid `local` branch name into `Branch<'repo>`
   pub fn to_branch_local<'repo>(
-    &'repo self,
+    repo: &'repo Repository,
     attached: &str,
   ) -> anyhow::Result<Branch<'repo>, anyhow::Error> {
-    Ok(self.repo.find_branch(attached, git2::BranchType::Local)?)
+    Ok(repo.find_branch(attached, git2::BranchType::Local)?)
   }
 
   /// Get oid of any **branch: `Branch<'repo>`**
-  pub fn get_oid(&self, branch: &Branch) -> anyhow::Result<Oid, anyhow::Error> {
-    return Ok(self.repo.find_commit(branch.get().target().unwrap())?.id());
+  pub fn get_oid(repo: &Repository, branch: &Branch) -> anyhow::Result<Oid, anyhow::Error> {
+    return Ok(repo.find_commit(branch.get().target().unwrap())?.id());
   }
 
-  /// Returns upstream of any `Branch<'repo>` 
+  /// Returns upstream of any `Branch<'repo>`
   /// May return `None` if there is no `Upstream`.
   /// May return `error: String` if there is an Error.
   /// Else will return a Upstream
