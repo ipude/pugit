@@ -43,6 +43,9 @@ impl Local {
 }
 
 impl Local {
+  ///
+  /// This method turns current branch's name into `Brnach<'repo>` for fine control.
+  ///
   /// This method takes &self
   /// so you call it directly :
   /// ```
@@ -60,11 +63,20 @@ impl Local {
 }
 
 impl Local {
-  /// Returns the Local enum -- very unlikely to fail
-  /// Needs a rewrite including Head's rewrite.
-  /// Everything else is fine.
+  /// ---
+  ///
+  /// Take a refrence at `Head::new(repo: &Repository)` before using this method as this is the second step after `Head::new(repo)`.
+  ///
+  /// ---
+  ///
+  /// 1. This method may return `Local::Branch(name)` if `Head::Branch(name)` is valid utf-8 string else you will get an error string to display.
+  ///
+  /// 2. If Head is not at all a branch i.e if `Head.is_branch()` returns `false` then you will get `Local::None` i.e None.
   pub fn new(head_ref: &Head, repo: &Repository) -> anyhow::Result<Local> {
-    if head_ref.is_refrence() {
+    // Only check for a branch if head returns a branch name.
+    // If the name returns a branch then give its name i.e `Local::Branch(String)` or if Err then return `Local::Error(String)`.
+    // Else give `Local::None`
+    if head_ref.is_branch() {
       match repo.find_branch(&head_ref.get_value().unwrap(), git2::BranchType::Local) {
         Ok(branch) => Ok(Local::Branch(branch.name()?.unwrap().to_string())),
         Err(e) => Ok(Local::Error(e.to_string())),
