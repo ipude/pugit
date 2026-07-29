@@ -5,4 +5,3 @@ pub mod head;
 pub mod index;
 pub mod refresh;
 pub mod repo_state;
-pub mod upstream;
