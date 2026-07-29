@@ -6,7 +6,7 @@ use crate::git::current::{
   local::Local,
   upstream::Upstream,
 };
-use git2::{Branch, Repository};
+use git2::{Branch, Oid, Repository};
 // ==========================
 
 // ==========================
@@ -49,13 +49,29 @@ impl Git {
     })
   }
 
-  /// Convert any valid `local` branch name into `Branch<'repo>` 
-  /// Will not find BranchType::Remote
-  /// Can fail if `Repository.find_branch(name, branch_type)` fails due to wrong name or or mismatched branch type.
+  /// Global helper function to tackle `String to Branch<'repo>` cases through Git
+  /// Convert any valid `local` branch name into `Branch<'repo>`
   pub fn to_branch_local<'repo>(
-    repo: &'repo Repository,
+    &'repo self,
     attached: &str,
   ) -> anyhow::Result<Branch<'repo>, anyhow::Error> {
-    Ok(repo.find_branch(attached, git2::BranchType::Local)?)
+    Ok(self.repo.find_branch(attached, git2::BranchType::Local)?)
+  }
+
+  /// Get oid of any **branch: `Branch<'repo>`**
+  pub fn get_oid(&self, branch: &Branch) -> anyhow::Result<Oid, anyhow::Error> {
+    return Ok(self.repo.find_commit(branch.get().target().unwrap())?.id());
+  }
+
+  /// Returns upstream of any `Branch<'repo>` 
+  /// May return `None` if there is no `Upstream`.
+  /// May return `error: String` if there is an Error.
+  /// Else will return a Upstream
+  pub fn get_upstream(branch: &Branch) -> anyhow::Result<Option<String>, anyhow::Error> {
+    match branch.upstream() {
+      Ok(b) => Ok(Some(b.name()?.unwrap().to_string())),
+      Err(e) if e.code() == git2::ErrorCode::NotFound => Ok(None),
+      Err(e) => Ok(Some(e.to_string())),
+    }
   }
 }
