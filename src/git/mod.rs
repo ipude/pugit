@@ -22,6 +22,7 @@ pub struct Git {
   pub index: Vec<FileStatus>,
 }
 
+/// This struct holds the Current Head and its Branch related values.
 #[allow(dead_code)]
 pub struct Current {
   pub current_branch: String,
