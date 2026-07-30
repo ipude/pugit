@@ -57,6 +57,15 @@ impl Git {
     return Ok(repo.find_commit(branch.get().target().unwrap())?.id());
   }
 
+  /// ---
+  ///
+  /// By default `Remote` is called `origin`.
+  /// A upstream looks at `origin/{name_of_branch_the_given_branch_tracks}`
+  ///
+  /// This functions just returns the `origin/bname` for given `branch`
+  ///
+  /// ---
+  ///
   /// Returns upstream of any `Branch<'repo>`
   /// May return `None` if there is no `Upstream`.
   /// May return `error: String` if there is an Error.
