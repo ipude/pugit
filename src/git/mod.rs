@@ -17,38 +17,8 @@ pub mod string_to_path;
 pub struct Git {
   pub repo: Repository,
   pub head: Head,
-  pub current: Current,
   pub config: Config,
   pub index: Vec<FileStatus>,
-}
-
-/// This struct holds the Current Head and its Branch related values.
-#[allow(dead_code)]
-pub struct Current {
-  pub current_branch: String,
-  pub current_upstream: String,
-}
-
-impl Current {
-  fn new(repo: &Repository, head: &Head) -> anyhow::Result<Self, anyhow::Error> {
-    let current_branch = if head.is_branch() {
-      let name = head.get_attached().unwrap();
-      Some(Git::to_branch_local(repo, &name)?)
-    } else {
-      None
-    };
-    let branch_name = current_branch
-      .as_ref()
-      .unwrap()
-      .name()?
-      .unwrap()
-      .to_string();
-    let current_upstream = Git::get_upstream(&current_branch.unwrap())?.unwrap();
-    Ok(Self {
-      current_branch: branch_name,
-      current_upstream,
-    })
-  }
 }
 
 #[allow(dead_code)]
@@ -60,9 +30,6 @@ impl Git {
     let repo = Repository::open(Git::string_to_path(path)?)?;
     let head = Head::new(&repo)?;
 
-    // Holds current value
-    let current = Current::new(&repo, &head)?;
-
     // Config and Index
     let config = config::Config::new(&repo)?;
     let index = FileStatus::new(&repo)?;
@@ -71,7 +38,6 @@ impl Git {
     Ok(Self {
       repo,
       head,
-      current,
       config,
       index,
     })
