@@ -1,5 +1,5 @@
 // ==========================
-use crate::git::current::{
+use crate::git::local::{
   config::{self, Config},
   head::Head,
   index::FileStatus,
@@ -8,7 +8,7 @@ use git2::{Branch, Oid, Repository};
 // ==========================
 
 // ==========================
-pub mod current;
+pub mod local;
 pub mod string_to_path;
 // ==========================
 
