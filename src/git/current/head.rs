@@ -78,7 +78,7 @@ impl Head {
           Ok(Head::Attached(head.shorthand()?.to_string()))
         } else {
           match head.target() {
-            Some(oid) => Ok(Head::Detached(repo.find_commit(oid)?.id())),
+            Some(oid) => Ok(Head::Detached(oid)),
             None => Ok(Head::Error(
               "Detached HEAD but points to no Commit.".to_string(),
             )),
