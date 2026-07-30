@@ -57,19 +57,16 @@ impl Git {
     return Ok(repo.find_commit(branch.get().target().unwrap())?.id());
   }
 
-  /// ---
+  /// The name `origin` is the default name given to the remote from which the repo has been cloned (could be **renamed**).
   ///
-  /// By default `Remote` is called `origin`.
-  /// A upstream looks at `origin/{name_of_branch_the_given_branch_tracks}`
+  /// An `upstream` is a branch on remote repo that the local repo's branch track.
   ///
-  /// This functions just returns the `origin/bname` for given `branch`
+  /// This function can return either of :
   ///
-  /// ---
+  /// `remote_name/branch_name` or simply `origin/bmame`
+  /// `None` if there is no `Upstream`.
+  /// `error: String` if there is an Error.
   ///
-  /// Returns upstream of any `Branch<'repo>`
-  /// May return `None` if there is no `Upstream`.
-  /// May return `error: String` if there is an Error.
-  /// Else will return a Upstream
   pub fn get_upstream(branch: &Branch) -> anyhow::Result<Option<String>, anyhow::Error> {
     match branch.upstream() {
       Ok(b) => Ok(Some(b.name()?.unwrap().to_string())),
