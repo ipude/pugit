@@ -1,5 +1,7 @@
-use git2::Oid;
+use git2::{Branch, Oid};
 use git2::{ErrorCode, Repository};
+
+use crate::git::Git;
 
 /// This Enum contains -->
 /// Attached head's branch name -- `Attached(String)`
@@ -34,11 +36,17 @@ impl Head {
     matches!(self, Head::Unborn)
   }
 
-  /// Returns value of `Head::Attached(String)`
-  pub fn get_attached(&self) -> Option<String> {
+  /// Returns a tuple of `Head::Attached(String)` along with a `Branch<'repo>` if Head is attached else `None`
+  pub fn get_attached<'repo>(
+    &self,
+    repo: &'repo Repository,
+  ) -> anyhow::Result<Option<(String, Branch<'repo>)>, anyhow::Error> {
     match self {
-      Head::Attached(name) => Some(name.to_string()),
-      _ => None,
+      Head::Attached(name) => {
+        let branch = Git::to_branch_local(repo, &name.to_string())?;
+        Ok(Some((name.to_string(), branch)))
+      }
+      _ => Ok(None),
     }
   }
 
