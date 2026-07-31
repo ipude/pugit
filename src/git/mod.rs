@@ -1,6 +1,6 @@
 // ==========================
 use crate::git::{
-  global::remote::RemoteStatus,
+  global::{branches::BranchStatus, remote::RemoteStatus},
   local::{
     config::{self, Config},
     head::Head,
@@ -23,7 +23,8 @@ pub struct Git {
   pub head: Head,
   pub config: Config,
   pub index: Vec<FileStatus>,
-  pub remote: Vec<RemoteStatus>,
+  pub remotes: Vec<RemoteStatus>,
+  pub branches: Vec<BranchStatus>,
 }
 
 #[allow(dead_code)]
@@ -40,15 +41,17 @@ impl Git {
     let index = FileStatus::new(&repo)?;
 
     // Remote and Branch
-    let remote = Git::get_remotes(&repo)?;
+    let remotes = Git::get_remotes(&repo)?;
+    let branches = Git::get_branches(&repo)?;
 
-    // Return
+    // Returns the derived values.
     Ok(Self {
       repo,
       head,
       config,
       index,
-      remote,
+      remotes,
+      branches,
     })
   }
 
