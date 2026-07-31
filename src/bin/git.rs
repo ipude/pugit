@@ -12,34 +12,10 @@ fn main() -> anyhow::Result<(), anyhow::Error> {
     println!("{name} --> {:?}", target)
   }
 
-  let remotes = git.repo.remotes()?;
-  for i in remotes.iter() {
-    let i = i?.unwrap_or("");
-    let remote = git.repo.find_remote(i)?.name()?.unwrap_or("").to_string();
-    println!("{i}");
-    println!("{remote}");
+  for reference in git.repo.references_glob("refs/remotes/*")? {
+    let reference = reference?;
+    println!("{}", reference.name().unwrap_or("?"));
   }
-
-  // let main = git.repo.find_branch("main", git2::BranchType::Local)?;
-  // let new = git.repo.find_branch("new", git2::BranchType::Local)?;
-  //
-  // let (ahead, behind) = git
-  //   .repo
-  //   .graph_ahead_behind(main.get().target().unwrap(), new.get().target().unwrap())?;
-  //
-  // if ahead > behind {
-  //   println!(
-  //     "Branch: {} is ahead by {ahead} commits from  Branch: {}",
-  //     main.name()?.unwrap_or("<no name>").to_uppercase(),
-  //     new.name()?.unwrap_or("<no name>").to_uppercase()
-  //   )
-  // }
-  //
-
-  // for reference in git.repo.references_glob("refs/remotes/*")? {
-  //   let reference = reference?;
-  //   println!("{}", reference.name().unwrap_or("?"));
-  // }
 
   Ok(())
 }
