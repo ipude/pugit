@@ -4,9 +4,9 @@ use git2::Repository;
 /// Contains status of remote including its `name`, `url` and `pushurl`.
 #[allow(dead_code)]
 pub struct RemoteStatus {
-  name: String,
-  url: String,
-  pushurl: String,
+  pub name: String,
+  pub url: String,
+  pub pushurl: String,
 }
 
 #[allow(dead_code)]
@@ -35,7 +35,7 @@ impl Git {
   ///
   /// So in a nutshell this function is designed to show only the remotes that are unique per repo.
   ///
-  fn get_remotes(repo: &Repository) -> anyhow::Result<Vec<RemoteStatus>, anyhow::Error> {
+  pub fn get_remotes(repo: &Repository) -> anyhow::Result<Vec<RemoteStatus>, anyhow::Error> {
     let string_array = repo.remotes()?;
     let mut vector = Vec::new();
     for i in string_array.iter().flatten() {
