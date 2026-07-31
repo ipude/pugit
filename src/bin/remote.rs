@@ -1,11 +1,12 @@
-use pugit::git::Git;
+use pugit::git::{Git, global::remote};
 
 fn main() -> anyhow::Result<(), anyhow::Error>{
   let git = Git::new("~/tmp")?;
-  let remotes_array = git.repo.remotes()?;
-  for remote_name in remotes_array.iter().flatten() {
-    let remote = git.repo.find_remote(remote_name.unwrap())?;
-    println!("Remote:  {}\nUrl:     {:?},\nPushurl: {}", remote.name()?.unwrap(), remote.url()?, remote.pushurl()?.unwrap_or("None"));
+  let remote = Git::get_remotes(&git.repo)?;
+  for i in remote.iter() {
+    println!("REMOTE   : {}", i.name);
+    println!("URL      : {}", i.url);
+    println!("PUSH URL : {}", i.pushurl);
   }
   Ok(())
 }
