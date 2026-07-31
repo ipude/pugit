@@ -20,6 +20,7 @@ pub mod string_to_path;
 #[allow(dead_code)]
 pub struct Git {
   pub repo: Repository,
+  // No need to add current: String as head.get_attached() returns the same.
   pub head: Head,
   pub config: Config,
   pub index: Vec<FileStatus>,
