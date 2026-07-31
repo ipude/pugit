@@ -1,6 +1,7 @@
 use crate::git::Git;
 use git2::Repository;
 
+/// Contains status of remote including its `name`, `url` and `pushurl`.
 #[allow(dead_code)]
 pub struct RemoteStatus {
   name: String,
@@ -28,9 +29,11 @@ impl Git {
   ///
   /// This is intentionally done keeping these things in mind:
   ///
-  /// 1. Majority uses single remotes or multiple remotes as mirror under the name `origin`.
+  /// 1. Majority of users likely uses single remotes or multiple remotes (mirroring) under the name `origin`.
   ///
-  /// 2. Minority knows how to manage the remotes so they almost always have distinct names for precise control over push, pull and fetch.
+  /// 2. Only a few knows how to manage the remotes professionally. So, they almost always have distinct names for precise control over push, pull and fetch.
+  ///
+  /// So in a nutshell this function is designed to show only the remotes that are unique per repo.
   ///
   fn get_remotes(repo: &Repository) -> anyhow::Result<Vec<RemoteStatus>, anyhow::Error> {
     let string_array = repo.remotes()?;
