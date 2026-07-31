@@ -1,15 +1,18 @@
 // ==========================
-use crate::git::local::{
-  config::{self, Config},
-  head::Head,
-  index::FileStatus,
+use crate::git::{
+  global::remote::RemoteStatus,
+  local::{
+    config::{self, Config},
+    head::Head,
+    index::FileStatus,
+  },
 };
 use git2::{Branch, Oid, Repository};
 // ==========================
 
 // ==========================
-pub mod local;
 pub mod global;
+pub mod local;
 pub mod string_to_path;
 // ==========================
 
@@ -20,6 +23,7 @@ pub struct Git {
   pub head: Head,
   pub config: Config,
   pub index: Vec<FileStatus>,
+  pub remote: Vec<RemoteStatus>,
 }
 
 #[allow(dead_code)]
@@ -35,12 +39,16 @@ impl Git {
     let config = config::Config::new(&repo)?;
     let index = FileStatus::new(&repo)?;
 
+    // Remote and Branch
+    let remote = Git::get_remotes(&repo)?;
+
     // Return
     Ok(Self {
       repo,
       head,
       config,
       index,
+      remote,
     })
   }
 
