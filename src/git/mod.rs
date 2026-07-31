@@ -9,6 +9,7 @@ use git2::{Branch, Oid, Repository};
 
 // ==========================
 pub mod local;
+pub mod global;
 pub mod string_to_path;
 // ==========================
 
