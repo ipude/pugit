@@ -3,7 +3,7 @@ use pugit::git::Git;
 #[allow(dead_code)]
 #[allow(unused)]
 fn main() -> anyhow::Result<(), anyhow::Error> {
-  let git = Git::new("~/tmp/")?;
+  let git = Git::new("~/.config/nvim/")?;
   let refs = git.repo.references_glob("refs/heads/**")?;
   for r in refs {
     let r = r?;
@@ -20,20 +20,26 @@ fn main() -> anyhow::Result<(), anyhow::Error> {
     println!("{remote}");
   }
 
-  let main = git.repo.find_branch("main", git2::BranchType::Local)?;
-  let new = git.repo.find_branch("new", git2::BranchType::Local)?;
+  // let main = git.repo.find_branch("main", git2::BranchType::Local)?;
+  // let new = git.repo.find_branch("new", git2::BranchType::Local)?;
+  //
+  // let (ahead, behind) = git
+  //   .repo
+  //   .graph_ahead_behind(main.get().target().unwrap(), new.get().target().unwrap())?;
+  //
+  // if ahead > behind {
+  //   println!(
+  //     "Branch: {} is ahead by {ahead} commits from  Branch: {}",
+  //     main.name()?.unwrap_or("<no name>").to_uppercase(),
+  //     new.name()?.unwrap_or("<no name>").to_uppercase()
+  //   )
+  // }
+  //
 
-  let (ahead, behind) = git
-    .repo
-    .graph_ahead_behind(main.get().target().unwrap(), new.get().target().unwrap())?;
-
-  if ahead > behind {
-    println!(
-      "Branch: {} is ahead by {ahead} commits from  Branch: {}",
-      main.name()?.unwrap_or("<no name>").to_uppercase(),
-      new.name()?.unwrap_or("<no name>").to_uppercase()
-    )
-  }
+  // for reference in git.repo.references_glob("refs/remotes/*")? {
+  //   let reference = reference?;
+  //   println!("{}", reference.name().unwrap_or("?"));
+  // }
 
   Ok(())
 }
