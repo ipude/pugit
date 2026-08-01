@@ -39,7 +39,7 @@ impl Head {
   }
 
   /// Returns the current `Branch<'repo>` you are on if `Head` is attached. No need to call :
-  /// ``` 
+  /// ```
   /// if head.is_attached() {
   ///   head.get_attached()?.unwrap()
   /// }
