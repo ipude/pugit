@@ -38,7 +38,12 @@ impl Head {
     matches!(self, Head::Unborn)
   }
 
-  /// Returns the current `Branch<'repo>` you are on.
+  /// Returns the current `Branch<'repo>` you are on if `Head` is attached. No need to call :
+  /// ``` 
+  /// if head.is_attached() {
+  ///   head.get_attached()?.unwrap()
+  /// }
+  /// ```
   pub fn get_attached<'repo>(
     &self,
     repo: &'repo Repository,
