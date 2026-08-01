@@ -1,6 +1,6 @@
 // ==========================
 use crate::git::{
-  global::{branches::BranchStatus, remote::RemoteStatus},
+  global::{ahead_behind::ABData, branches::BranchStatus, remote::RemoteStatus},
   local::{
     config::{self, Config},
     head::Head,
@@ -26,6 +26,7 @@ pub struct Git {
   pub index: Vec<FileStatus>,
   pub remotes: Vec<RemoteStatus>,
   pub branches: Vec<BranchStatus>,
+  pub ahead_behind: Vec<ABData>,
 }
 
 #[allow(dead_code)]
@@ -45,6 +46,11 @@ impl Git {
     let remotes = Git::get_remotes(&repo)?;
     let branches = Git::get_branches(&repo)?;
 
+    // Make sure not to declare the following as it would do borrow issue-->
+    // let current_branch = head.get_attached(&repo)?.unwrap();
+    let ahead_behind =
+      Git::ahead_behind_from_current(&repo, &head.get_attached(&repo)?.unwrap(), &branches)?;
+
     // Returns the derived values.
     Ok(Self {
       repo,
@@ -53,6 +59,7 @@ impl Git {
       index,
       remotes,
       branches,
+      ahead_behind,
     })
   }
 
