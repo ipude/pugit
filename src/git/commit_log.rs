@@ -1,5 +1,5 @@
-use git2::{Oid, Repository, Sort};
 use crate::git::Git;
+use git2::{Oid, Repository, Sort};
 
 #[allow(dead_code)]
 impl Git {
@@ -10,11 +10,11 @@ impl Git {
     // use the head'oid as seed to the iterator.
     revwalk.push_head()?;
     // sort the oid into Topological and then sort with Time based ordering.
-    // The parameter should always be --> 
+    // The parameter should always be -->
     // (Sort::TOPOLOGICAL | Sort::TIME)
     revwalk.set_sorting(Sort::TOPOLOGICAL | Sort::TIME)?;
 
-    // return 
+    // return
     revwalk.collect()
   }
 }
