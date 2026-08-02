@@ -1,7 +1,7 @@
 // ==========================
 use crate::git::{
-  {ahead_behind::ABData, branches::BranchStatus, remote::RemoteStatus},
-  {config::Config, head::Head, index::FileStatus},
+  ahead_behind::ABData, branches::BranchStatus, config::Config, head::Head, index::FileStatus,
+  refs::Refs, remote::RemoteStatus,
 };
 use git2::{Branch, Oid, Repository};
 // ==========================
@@ -12,7 +12,7 @@ pub mod branches;
 pub mod config;
 pub mod head;
 pub mod index;
-pub mod refs_heads;
+pub mod refs;
 pub mod remote;
 pub mod repo_state;
 pub mod string_to_path;
@@ -24,6 +24,7 @@ pub struct Git {
   pub repo: Repository,
   // No need to add current: String as head.get_attached() returns the same.
   pub head: Head,
+  pub refs: Refs,
   pub config: Config,
   pub index: Vec<FileStatus>,
   pub remotes: Vec<RemoteStatus>,
@@ -53,6 +54,10 @@ impl Git {
     let ahead_behind =
       Git::ahead_behind_from_current(&repo, &head.get_attached(&repo)?.unwrap(), &branches)?;
 
+    let refs_heads = Git::get_refs_from_glob(&repo, "refs/heads/**")?;
+
+    let refs = Refs { heads: refs_heads };
+
     // Returns the derived values.
     Ok(Self {
       repo,
@@ -62,6 +67,7 @@ impl Git {
       remotes,
       branches,
       ahead_behind,
+      refs,
     })
   }
 
