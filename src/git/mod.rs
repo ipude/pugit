@@ -16,6 +16,7 @@ pub mod index;
 pub mod refs;
 pub mod remote;
 pub mod repo_state;
+pub mod stash_list;
 pub mod string_to_path;
 // ==========================
 
@@ -32,6 +33,7 @@ pub struct Git {
   pub branches: Vec<BranchStatus>,
   pub ahead_behind: Vec<ABData>,
   pub commit_log: Vec<Oid>,
+  pub stash_list: Vec<(usize, String, Oid)>,
 }
 
 #[allow(dead_code)]
@@ -40,7 +42,7 @@ impl Git {
   /// Can be used for Repowide refresh if called again.
   pub fn new(path: &str) -> anyhow::Result<Self> {
     // Core initialization
-    let repo = Repository::open(Git::string_to_path(path)?)?;
+    let mut repo = Repository::open(Git::string_to_path(path)?)?;
     let head = Head::new(&repo)?;
 
     // Config and Index
@@ -65,6 +67,8 @@ impl Git {
     // entire commit log of repo
     let commit_log = Git::get_commits_log(&repo)?;
 
+    let stash_list = Git::get_stash_list(&mut repo)?;
+
     // Returns the derived values.
     Ok(Self {
       repo,
@@ -75,6 +79,7 @@ impl Git {
       branches,
       ahead_behind,
       refs,
+      stash_list,
       commit_log,
     })
   }
