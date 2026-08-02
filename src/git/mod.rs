@@ -1,7 +1,7 @@
 // ==========================
 use crate::git::{
   ahead_behind::ABData, branches::BranchStatus, config::Config, head::Head, index::FileStatus,
-  refs::Refs, remote::RemoteStatus,
+  refs::Refs, remote::RemoteStatus, tags_list::TagInfo,
 };
 use git2::{Branch, Oid, Repository};
 // ==========================
@@ -18,6 +18,7 @@ pub mod remote;
 pub mod repo_state;
 pub mod stash_list;
 pub mod string_to_path;
+pub mod tags_list;
 // ==========================
 
 /// Pugit's core data sturcture that holds almost all important Git things.
@@ -34,6 +35,7 @@ pub struct Git {
   pub ahead_behind: Vec<ABData>,
   pub commit_log: Vec<Oid>,
   pub stash_list: Vec<(usize, String, Oid)>,
+  pub tag_list: Vec<TagInfo>,
 }
 
 #[allow(dead_code)]
@@ -64,23 +66,26 @@ impl Git {
     // Refs
     let refs = Refs { heads: refs_heads };
 
-    // entire commit log of repo
+    // Core misc
     let commit_log = Git::get_commits_log(&repo)?;
 
     let stash_list = Git::get_stash_list(&mut repo)?;
+
+    let tag_list = Git::get_tags_detailed(&repo)?;
 
     // Returns the derived values.
     Ok(Self {
       repo,
       head,
+      refs,
       config,
       index,
       remotes,
       branches,
       ahead_behind,
-      refs,
       stash_list,
       commit_log,
+      tag_list,
     })
   }
 
