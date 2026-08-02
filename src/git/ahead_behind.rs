@@ -1,6 +1,6 @@
 use git2::{Branch, Repository};
 
-use crate::git::{Git, global::branches::BranchStatus};
+use crate::git::{Git, branches::BranchStatus};
 
 /// ABData means Ahead Behind Data. This struct contains two touples.
 /// (String, String) touple stands for (Current branch, Non-current branch).

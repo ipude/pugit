@@ -1,18 +1,21 @@
 // ==========================
 use crate::git::{
-  global::{ahead_behind::ABData, branches::BranchStatus, remote::RemoteStatus},
-  local::{
-    config::{self, Config},
-    head::Head,
-    index::FileStatus,
-  },
+  {ahead_behind::ABData, branches::BranchStatus, remote::RemoteStatus},
+  {config::Config, head::Head, index::FileStatus},
 };
 use git2::{Branch, Oid, Repository};
 // ==========================
 
 // ==========================
+pub mod ahead_behind;
+pub mod branches;
+pub mod config;
 pub mod global;
-pub mod local;
+pub mod head;
+pub mod index;
+pub mod refs_heads;
+pub mod remote;
+pub mod repo_state;
 pub mod string_to_path;
 // ==========================
 
