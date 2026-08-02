@@ -10,7 +10,6 @@ use git2::{Branch, Oid, Repository};
 pub mod ahead_behind;
 pub mod branches;
 pub mod config;
-pub mod global;
 pub mod head;
 pub mod index;
 pub mod refs_heads;
