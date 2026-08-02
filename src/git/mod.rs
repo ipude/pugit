@@ -9,6 +9,7 @@ use git2::{Branch, Oid, Repository};
 // ==========================
 pub mod ahead_behind;
 pub mod branches;
+pub mod commit_log;
 pub mod config;
 pub mod head;
 pub mod index;
@@ -30,6 +31,7 @@ pub struct Git {
   pub remotes: Vec<RemoteStatus>,
   pub branches: Vec<BranchStatus>,
   pub ahead_behind: Vec<ABData>,
+  pub commit_log: Vec<Oid>,
 }
 
 #[allow(dead_code)]
@@ -54,9 +56,14 @@ impl Git {
     let ahead_behind =
       Git::ahead_behind_from_current(&repo, &head.get_attached(&repo)?.unwrap(), &branches)?;
 
+    // Refs of Globs
     let refs_heads = Git::get_refs_from_glob(&repo, "refs/heads/**")?;
 
+    // Refs
     let refs = Refs { heads: refs_heads };
+
+    // entire commit log of repo
+    let commit_log = Git::get_commits_log(&repo)?;
 
     // Returns the derived values.
     Ok(Self {
@@ -68,6 +75,7 @@ impl Git {
       branches,
       ahead_behind,
       refs,
+      commit_log,
     })
   }
 
