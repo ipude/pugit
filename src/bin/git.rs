@@ -3,7 +3,7 @@ use pugit::git::Git;
 #[allow(dead_code)]
 #[allow(unused)]
 fn main() -> anyhow::Result<(), anyhow::Error> {
-  let git = Git::new("~/.config/nvim/")?;
+  let git = Git::new("~/tmp/")?;
   let refs = git.repo.references_glob("refs/heads/**")?;
   for r in refs {
     let r = r?;
