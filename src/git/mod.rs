@@ -1,11 +1,17 @@
 // ==========================
+// Imports
+// ==========================
 use crate::git::{
   ahead_behind::ABData, branches::BranchStatus, config::Config, head::Head, index::FileStatus,
   refs::Refs, remote::RemoteStatus, tags_list::TagInfo,
 };
-use git2::{Branch, Oid, Repository};
+use git2::{Oid, Repository};
+// ==========================
 // ==========================
 
+
+// ==========================
+// Modules
 // ==========================
 pub mod ahead_behind;
 pub mod branches;
@@ -19,23 +25,53 @@ pub mod repo_state;
 pub mod stash_list;
 pub mod string_to_path;
 pub mod tags_list;
+pub mod utils;
+// ==========================
 // ==========================
 
+
+// ==========================
+// Git init
+// ==========================
 /// Pugit's core data sturcture that holds almost all important Git things.
 #[allow(dead_code)]
 pub struct Git {
-  pub repo: Repository,
+  // The current repo
+  pub current_repo: Repository,
+  // The current head's state
   // No need to add current: String as head.get_attached() returns the same.
-  pub head: Head,
-  pub refs: Refs,
-  pub config: Config,
-  pub index: Vec<FileStatus>,
-  pub remotes: Vec<RemoteStatus>,
-  pub branches: Vec<BranchStatus>,
-  pub ahead_behind: Vec<ABData>,
-  pub commit_log: Vec<Oid>,
-  pub stash_list: Vec<(usize, String, Oid)>,
-  pub tag_list: Vec<TagInfo>,
+  pub current_head: Head,
+
+  // Everything under .git/refs/
+  // Manage Refs fields as per your needs.
+  pub repo_refs: Refs,
+
+  // Everytging under .git/index
+  pub repo_config: Config,
+
+  // similar to: git status , already contains conflicted files.
+  // for staging related work.
+  pub repo_staging_index: Vec<FileStatus>,
+
+  // all unique remotes connected to repo
+  pub repo_remotes: Vec<RemoteStatus>,
+
+  // all branches inside a repo
+  pub repo_branches: Vec<BranchStatus>,
+
+  // ahead behind data for current_branch compared with branches of a repo.
+  pub ahead_behind_from_current: Vec<ABData>,
+
+  // commit list of entire repo.
+  // equivalent to: git log --oneline
+  // purpose: for listing all commits done
+  pub repo_commits_done: Vec<Oid>,
+
+  // Stash list of entire repo.
+  pub repo_stash_list: Vec<(usize, String, Oid)>,
+
+  // Tag list of entire repo
+  pub repo_tag_list: Vec<TagInfo>,
 }
 
 #[allow(dead_code)]
@@ -43,81 +79,44 @@ impl Git {
   /// Compiles everything into a single structure.
   /// Can be used for Repowide refresh if called again.
   pub fn new(path: &str) -> anyhow::Result<Self> {
-    // Core initialization
-    let mut repo = Repository::open(Git::string_to_path(path)?)?;
-    let head = Head::new(&repo)?;
+    // Current
+    let mut current_repo = Repository::open(Git::string_to_path(path)?)?;
+    let current_head = Head::new(&current_repo)?;
 
-    // Config and Index
-    let config = config::Config::new(&repo)?;
-    let index = FileStatus::new(&repo)?;
+    // .git/refs/
+    let refs_heads = Git::get_refs_from_glob(&current_repo, "refs/heads/**")?;
+    let repo_refs = Refs { heads: refs_heads };
 
-    // Remote and Branch
-    let remotes = Git::get_remotes(&repo)?;
-    let branches = Git::get_branches(&repo)?;
+    // Repo prefixed:
+    let repo_config = config::Config::new(&current_repo)?;
+    let repo_staging_index = FileStatus::new(&current_repo)?;
+    let repo_remotes = Git::get_remotes(&current_repo)?;
+    let repo_branches = Git::get_branches(&current_repo)?;
+    let repo_commits_done = Git::get_commits_log(&current_repo)?;
+    let repo_stash_list = Git::get_stash_list(&mut current_repo)?;
+    let repo_tag_list = Git::get_tags_detailed(&current_repo)?;
 
-    // Make sure not to declare the following as it would do borrow issue-->
-    // let current_branch = head.get_attached(&repo)?.unwrap();
-    let ahead_behind =
-      Git::ahead_behind_from_current(&repo, &head.get_attached(&repo)?.unwrap(), &branches)?;
+    // Comparison of all branches with current one for ahead_behind
+    let ahead_behind_from_current = Git::ahead_behind_from_current(
+      &current_repo,
+      &current_head.get_attached(&current_repo)?.unwrap(),
+      &repo_branches,
+    )?;
 
-    // Refs of Globs
-    let refs_heads = Git::get_refs_from_glob(&repo, "refs/heads/**")?;
-
-    // Refs
-    let refs = Refs { heads: refs_heads };
-
-    // Core misc
-    let commit_log = Git::get_commits_log(&repo)?;
-
-    let stash_list = Git::get_stash_list(&mut repo)?;
-
-    let tag_list = Git::get_tags_detailed(&repo)?;
-
-    // Returns the derived values.
     Ok(Self {
-      repo,
-      head,
-      refs,
-      config,
-      index,
-      remotes,
-      branches,
-      ahead_behind,
-      stash_list,
-      commit_log,
-      tag_list,
+      current_repo,
+      current_head,
+      repo_refs,
+      repo_config,
+      repo_staging_index,
+      repo_remotes,
+      repo_branches,
+      repo_commits_done,
+      repo_stash_list,
+      repo_tag_list,
+      ahead_behind_from_current,
     })
   }
-
-  /// Global helper function to tackle `String to Branch<'repo>` cases through Git
-  /// Convert any valid `local` branch name into `Branch<'repo>`
-  pub fn to_branch_local<'repo>(
-    repo: &'repo Repository,
-    attached: &str,
-  ) -> anyhow::Result<Branch<'repo>, anyhow::Error> {
-    Ok(repo.find_branch(attached, git2::BranchType::Local)?)
-  }
-
-  /// Get oid of any **branch: `Branch<'repo>`**
-  pub fn get_oid(repo: &Repository, branch: &Branch) -> anyhow::Result<Oid, anyhow::Error> {
-    return Ok(repo.find_commit(branch.get().target().unwrap())?.id());
-  }
-
-  /// The name `origin` is the default name given to the remote from which the repo has been cloned (could be **renamed**).
-  ///
-  /// An `upstream` is a branch on remote repo that the local repo's branch track.
-  ///
-  /// This function can return either of :
-  ///
-  /// `remote_name/branch_name` or simply `origin/bmame`
-  /// `None` if there is no `Upstream`.
-  /// `error: String` if there is an Error.
-  ///
-  pub fn get_upstream(branch: &Branch) -> anyhow::Result<Option<String>, anyhow::Error> {
-    match branch.upstream() {
-      Ok(b) => Ok(Some(b.name()?.unwrap().to_string())),
-      Err(e) if e.code() == git2::ErrorCode::NotFound => Ok(None),
-      Err(e) => Ok(Some(e.to_string())),
-    }
-  }
 }
+// ==========================
+// ==========================
