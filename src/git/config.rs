@@ -17,7 +17,16 @@ pub enum Config {
 }
 
 impl Git {
-  /// Get config fields and their values for any repo.
+  /// Get **config fields** and their values for any repo.
+  /// **Usage:**
+  /// ```
+  /// for item in Git::get_config(&repo) {
+  ///   match item {
+  ///     Config::Found(value) => {/*..*/},
+  ///     Config::Err(e) => {/*..*/},
+  ///   }
+  /// }
+  /// ```
   pub fn get_config(repo: &Repository) -> Vec<Config> {
     // Get config or return early
     let mut config = match repo.config() {
