@@ -10,6 +10,7 @@ pub struct ConfigEntry {
 
 /// Purpose: Handeling error and storing in String format.
 /// There can be either `Found(ConfigEntry)` or Err(String)
+#[allow(dead_code)]
 pub enum Config {
   Found(ConfigEntry),
   Err(String),
