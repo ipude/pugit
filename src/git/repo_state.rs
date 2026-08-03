@@ -1,6 +1,7 @@
 use git2::{Repository, RepositoryState};
 
 use crate::git::Git;
+/// Exact variants for the enum variants of RepositoryState.
 pub enum RepoState {
   Clean,
   Merging,
@@ -17,6 +18,7 @@ pub enum RepoState {
 
 #[allow(dead_code)]
 impl Git {
+  /// Returns only **one** active state of Repository.
   pub fn get_repo_state(repo: &Repository) -> RepoState {
     let state = repo.state();
     match &state {
