@@ -2,8 +2,7 @@
 // Imports
 // ==========================
 use crate::git::{
-  ahead_behind::ABData, branches::BranchStatus, config::{Config}, head::Head, index::FileStatus,
-  refs::Refs, remote::RemoteStatus, tags_list::TagInfo,
+  ahead_behind::ABData, branches::BranchStatus, config::Config, head::Head, index::FileStatus, refs::Refs, remote::RemoteStatus, repo_state::RepoState, tags_list::TagInfo
 };
 use git2::{Oid, Repository};
 // ==========================
@@ -70,6 +69,9 @@ pub struct Git {
 
   // Tag list of entire repo
   pub repo_tag_list: Vec<TagInfo>,
+
+  // State of repo
+  pub repo_state: RepoState,
 }
 
 #[allow(dead_code)]
@@ -94,6 +96,8 @@ impl Git {
     let repo_stash_list = Git::get_stash_list(&mut current_repo)?;
     let repo_tag_list = Git::get_tags_detailed(&current_repo)?;
 
+    let repo_state = Git::get_repo_state(&current_repo);
+
     // Comparison of all branches with current one for ahead_behind
     let ahead_behind_from_current = Git::ahead_behind_from_current(
       &current_repo,
@@ -112,6 +116,7 @@ impl Git {
       repo_commits_done,
       repo_stash_list,
       repo_tag_list,
+      repo_state,
       ahead_behind_from_current,
     })
   }
