@@ -2,13 +2,12 @@
 // Imports
 // ==========================
 use crate::git::{
-  ahead_behind::ABData, branches::BranchStatus, config::Config, head::Head, index::FileStatus,
+  ahead_behind::ABData, branches::BranchStatus, config::GitConfig, head::Head, index::FileStatus,
   refs::Refs, remote::RemoteStatus, tags_list::TagInfo,
 };
 use git2::{Oid, Repository};
 // ==========================
 // ==========================
-
 
 // ==========================
 // Modules
@@ -29,7 +28,6 @@ pub mod utils;
 // ==========================
 // ==========================
 
-
 // ==========================
 // Git init
 // ==========================
@@ -47,7 +45,7 @@ pub struct Git {
   pub repo_refs: Refs,
 
   // Everytging under .git/index
-  pub repo_config: Config,
+  pub repo_config: Vec<GitConfig>,
 
   // similar to: git status , already contains conflicted files.
   // for staging related work.
@@ -88,7 +86,7 @@ impl Git {
     let repo_refs = Refs { heads: refs_heads };
 
     // Repo prefixed:
-    let repo_config = config::Config::new(&current_repo)?;
+    let repo_config = Git::get_config(&current_repo)?;
     let repo_staging_index = FileStatus::new(&current_repo)?;
     let repo_remotes = Git::get_remotes(&current_repo)?;
     let repo_branches = Git::get_branches(&current_repo)?;
