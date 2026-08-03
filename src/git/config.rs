@@ -1,46 +1,62 @@
-use git2::Repository;
 use crate::git::Git;
+use git2::Repository;
 
-/// `GitConfig` conatins all existing configs with their assigned value.
-/// Tip toe copy of `.git/config`
+// Contains cached individual config entry and its value.
 #[allow(dead_code)]
-pub struct GitConfig {
-  // name of config
-  pub config_name: String,
-  // value of config
+pub struct ConfigEntry {
+  pub config_entry: String,
   pub config_value: String,
 }
 
-impl Git {
-  /// Get the config of entered `repo: &Repository`.
-  /// Each config has a `name` and a `value`.
-  pub fn get_config(repo: &Repository) -> anyhow::Result<Vec<GitConfig>> {
-    // get repo's config and snapshot it.
-    let mut config = repo.config()?;
-    let snapshot = config.snapshot()?;
-    let mut vector = Vec::new();
+/// Purpose: Handeling error and storing in String format.
+/// There can be either `Found(ConfigEntry)` or Err(String)
+pub enum Config {
+  Found(ConfigEntry),
+  Err(String),
+}
 
-    // iter over all the config variable (everything insdie .git/config irrespective of any specific glob)
-    let mut entries = snapshot.entries(None)?;
+impl Git {
+  /// Get config fields and their values for any repo.
+  pub fn get_config(repo: &Repository) -> Vec<Config> {
+    // Get config or return early
+    let mut config = match repo.config() {
+      Ok(config) => config,
+      Err(e) => return vec![Config::Err(e.to_string())],
+    };
+
+    // Cache the config.
+    let snapshot = match config.snapshot() {
+      Ok(s) => s,
+      Err(e) => return vec![Config::Err(e.to_string())],
+    };
+
+    // iter over everything inside .git/config
+    let mut entries = match snapshot.entries(None) {
+      Ok(e) => e,
+      Err(e) => return vec![Config::Err(e.to_string())],
+    };
+    let mut vector = Vec::new();
 
     // Until entries.next() don't returns None
     while let Some(entry) = entries.next() {
-      // Skip if there is an error
-      let entry = match entry{
+      // Push error and iter next or do the futher operation.
+      let entry = match entry {
         Ok(entry) => entry,
-        Err(_) => continue,
+        Err(e) => {
+          vector.push(Config::Err(e.to_string()));
+          continue;
+        }
       };
 
-      // use .unwrap_or() instead of try_operator (?) as runtime faliures along with long error messages are not top pick.
-      // Keep in mind that these fields are for display.
+      // Keep in mind that these fields are for display purpose.
       let entry_name = entry.name().unwrap_or("<Invalid Entry Name>").to_string();
-      let entry_value = entry.value().unwrap_or("Invalid Entry Value").to_string();
+      let entry_value = entry.value().unwrap_or("<Invalid Entry Value>").to_string();
 
-      vector.push(GitConfig {
-        config_name: entry_name,
+      vector.push(Config::Found(ConfigEntry {
+        config_entry: entry_name,
         config_value: entry_value,
-      });
+      }));
     }
-    Ok(vector)
+    vector
   }
 }
