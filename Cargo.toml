@@ -1,15 +1,15 @@
 [package]
-name = "pugit"
+name = "fgit"
 version = "0.1.0"
 edition = "2024"
-description = "The Pude's choice for better git tui"
+description = "Fast Git built into tui"
 license = "MIT"
 readme = "README.md"
 repository = "https://github.com/ipude/pugit"
 keywords = ["cli", "tui", "git", "gh", "pugit"]
 categories = ["command-line-utilities"]
 
-default-run = "pugit"
+default-run = "fgit"
 
 [dependencies]
 ratatui = "0.30.2"
