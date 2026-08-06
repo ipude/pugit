@@ -2,7 +2,8 @@
 // Imports
 // ==========================
 use crate::git::{
-  ahead_behind::ABData, branches::BranchStatus, config::Config, head::Head, index::FileStatus, refs::Refs, remote::RemoteStatus, repo_state::RepoState, tags_list::TagInfo
+  ahead_behind::ABData, branches::BranchStatus, config::Config, head::Head, index::GitStatus,
+  refs::Refs, remote::RemoteStatus, repo_state::RepoState, tags_list::TagInfo,
 };
 use git2::{Oid, Repository};
 // ==========================
@@ -33,28 +34,17 @@ pub mod utils;
 /// Pugit's core data sturcture that holds almost all important Git things.
 #[allow(dead_code)]
 pub struct Git {
-  // The current repo
-  pub current_repo: Repository,
-  // The current head's state
-  // No need to add current: String as head.get_attached() returns the same.
-  pub current_head: Head,
-
-  // Everything under .git/refs/
-  // Manage Refs fields as per your needs.
-  pub repo_refs: Refs,
-
-  // Everytging under .git/index
-  pub repo_config: Vec<Config>,
-
-  // similar to: git status , already contains conflicted files.
-  // for staging related work.
-  pub repo_staging_index: Vec<FileStatus>,
+  pub repo: Repository,
+  pub head: Head,
+  pub refs: Refs,
+  pub config: Vec<Config>,
+  pub modified_status: Vec<GitStatus>,
 
   // all unique remotes connected to repo
-  pub repo_remotes: Vec<RemoteStatus>,
+  pub remotes: Vec<RemoteStatus>,
 
   // all branches inside a repo
-  pub repo_branches: Vec<BranchStatus>,
+  pub branches: Vec<BranchStatus>,
 
   // ahead behind data for current_branch compared with branches of a repo.
   pub ahead_behind_from_current: Vec<ABData>,
@@ -62,16 +52,16 @@ pub struct Git {
   // commit list of entire repo.
   // equivalent to: git log --oneline
   // purpose: for listing all commits done
-  pub repo_commits_done: Vec<Oid>,
+  pub commits: Vec<Oid>,
 
   // Stash list of entire repo.
-  pub repo_stash_list: Vec<(usize, String, Oid)>,
+  pub stash_list: Vec<(usize, String, Oid)>,
 
   // Tag list of entire repo
-  pub repo_tag_list: Vec<TagInfo>,
+  pub tag_list: Vec<TagInfo>,
 
   // State of repo
-  pub repo_state: RepoState,
+  pub state: RepoState,
 }
 
 #[allow(dead_code)]
@@ -80,43 +70,40 @@ impl Git {
   /// Can be used for Repowide refresh if called again.
   pub fn new(path: &str) -> anyhow::Result<Self> {
     // Current
-    let mut current_repo = Repository::open(Git::string_to_path(path)?)?;
-    let current_head = Head::new(&current_repo)?;
+    let mut repo = Repository::open(Git::string_to_path(path)?)?;
+    let head = Head::new(&repo)?;
 
     // .git/refs/
-    let refs_heads = Git::get_refs_from_glob(&current_repo, "refs/heads/**")?;
-    let repo_refs = Refs { heads: refs_heads };
+    let refs_heads = Git::get_refs_from_glob(&repo, "refs/heads/**")?;
+    let refs = Refs { heads: refs_heads };
 
     // Repo prefixed:
-    let repo_config = Git::get_config(&current_repo);
-    let repo_staging_index = FileStatus::new(&current_repo)?;
-    let repo_remotes = Git::get_remotes(&current_repo)?;
-    let repo_branches = Git::get_branches(&current_repo)?;
-    let repo_commits_done = Git::get_commits_log(&current_repo)?;
-    let repo_stash_list = Git::get_stash_list(&mut current_repo)?;
-    let repo_tag_list = Git::get_tags_detailed(&current_repo)?;
+    let config = Git::get_config(&repo);
+    let modified_status = GitStatus::new(&repo)?;
+    let remotes = Git::get_remotes(&repo)?;
+    let branches = Git::get_branches(&repo)?;
+    let commits = Git::get_commits_log(&repo)?;
+    let stash_list = Git::get_stash_list(&mut repo)?;
+    let tag_list = Git::get_tags_detailed(&repo)?;
 
-    let repo_state = Git::get_repo_state(&current_repo);
+    let state = Git::get_repo_state(&repo);
 
     // Comparison of all branches with current one for ahead_behind
-    let ahead_behind_from_current = Git::ahead_behind_from_current(
-      &current_repo,
-      &current_head.get_attached(&current_repo)?.unwrap(),
-      &repo_branches,
-    )?;
+    let ahead_behind_from_current =
+      Git::ahead_behind_from_current(&repo, &head.get_attached(&repo)?.unwrap(), &branches)?;
 
     Ok(Self {
-      current_repo,
-      current_head,
-      repo_refs,
-      repo_config,
-      repo_staging_index,
-      repo_remotes,
-      repo_branches,
-      repo_commits_done,
-      repo_stash_list,
-      repo_tag_list,
-      repo_state,
+      repo,
+      head,
+      refs,
+      config,
+      modified_status,
+      remotes,
+      branches,
+      commits,
+      stash_list,
+      tag_list,
+      state,
       ahead_behind_from_current,
     })
   }
