@@ -1,14 +1,15 @@
 use git2::{Index, Repository, Status, StatusOptions, Statuses};
 
-/// Contains status code in XY format of a File with Status. Includes path of the file in String format.
+/// Contains `Index`, `Worktree` and `Conflict` status of File present in repository.
+/// Similar to : `git status --short`
 #[allow(dead_code)]
-pub struct FileStatus {
-  pub code: String,
+pub struct GitStatus {
+  pub index_wt_status_code: String,
   pub path: String,
 }
 
 #[allow(dead_code)]
-impl FileStatus {
+impl GitStatus {
   /// Returns the X's equivalent type from (XY) or simply the Index status of underlying file but in a char like 'A' for New item in Index.
   fn index_char(s: git2::Status) -> char {
     if s.contains(Status::INDEX_NEW) {
@@ -120,7 +121,7 @@ impl FileStatus {
   /// ```
   ///
   /// Where Code is in `XY`, `X_` or `_Y` format depending on status of the file.  **{Note: _ means blank}**
-  pub fn new(repo: &Repository) -> anyhow::Result<Vec<FileStatus>, anyhow::Error> {
+  pub fn new(repo: &Repository) -> anyhow::Result<Vec<GitStatus>, anyhow::Error> {
     let index = repo.index()?;
     let statuses = Self::get_statuses(repo)?;
     let mut vector = Vec::new();
@@ -128,8 +129,8 @@ impl FileStatus {
     for entry in statuses.iter() {
       let path = entry.path().unwrap_or("<invalid utf-8>");
       let status = entry.status();
-      vector.push(FileStatus {
-        code: Self::constructor(&status, &index, path),
+      vector.push(GitStatus {
+        index_wt_status_code: Self::constructor(&status, &index, path),
         path: path.to_string(),
       });
     }
