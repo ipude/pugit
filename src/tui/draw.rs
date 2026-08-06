@@ -3,7 +3,7 @@ use std::error::Error;
 
 use ratatui::DefaultTerminal;
 
-use crate::state::tabs::App;
+use crate::tui::App;
 #[allow(dead_code)]
 impl App {
   pub fn draw_home_page(

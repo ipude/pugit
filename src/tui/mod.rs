@@ -3,11 +3,11 @@ use std::{error::Error, sync::Arc};
 
 use ratatui::DefaultTerminal;
 
-use crate::{action::navigate::Action, state::tabs::TabPage::HomePage, watcher::WatchSignals};
+use crate::{action::navigate::Action, tui::Pages::HomePage, watcher::WatchSignals};
 
 #[allow(dead_code)]
 #[derive(PartialEq)]
-pub enum TabPage {
+pub enum Pages {
   HomePage,
   HelpPage,
 }
@@ -15,7 +15,7 @@ pub enum TabPage {
 #[allow(dead_code)]
 pub struct App {
   pub signal: Arc<WatchSignals>,
-  pub current_tab: TabPage,
+  pub active_page: Pages,
   pub text: String,
 }
 
@@ -24,28 +24,28 @@ impl App {
   pub fn new() -> anyhow::Result<App, anyhow::Error> {
     Ok(App {
       signal: WatchSignals::spawn()?,
-      current_tab: HomePage,
+      active_page: HomePage,
       text: "".to_string(),
     })
   }
 
   fn draw(&mut self, terminal: &mut DefaultTerminal) -> std::result::Result<(), Box<dyn Error>> {
     loop {
-      match self.current_tab {
-        TabPage::HomePage => {
+      match self.active_page {
+        Pages::HomePage => {
           self.draw_home_page(terminal)?;
         }
-        TabPage::HelpPage => {
+        Pages::HelpPage => {
           self.draw_help_page(terminal)?;
         }
       }
       match crate::keys::input::handle_input(self)? {
         Action::Quit => break,
         Action::GoToHomePage => {
-          self.current_tab = TabPage::HomePage;
+          self.active_page = Pages::HomePage;
         }
         Action::GoToHelpPage => {
-          self.current_tab = TabPage::HelpPage;
+          self.active_page = Pages::HelpPage;
         }
         Action::EnterContinue => {}
         Action::EnterSetting => {}
