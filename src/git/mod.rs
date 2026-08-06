@@ -1,6 +1,6 @@
 use crate::git::{
-  ahead_behind::ABData, branches::BranchStatus, config::Config, head::Head, index::GitStatus,
-  refs::Refs, remote::RemoteStatus, repo_state::RepoState, tags_list::TagInfo,
+  ahead_behind::ABData, branches::BranchStatus, config::Config, head::HeadCondition, index::GitStatus,
+  refs::RefrenceContainer, remote::RemoteStatus, repo_state::RepoState, tags_list::TagInfo,
 };
 use git2::{Oid, Repository};
 
@@ -24,8 +24,8 @@ pub mod utils;
 #[allow(dead_code)]
 pub struct Git {
   pub repo: Repository,
-  pub head: Head,
-  pub refs: Refs,
+  pub head: HeadCondition,
+  pub refs: RefrenceContainer,
   pub config: Vec<Config>,
   pub modified_status: Vec<GitStatus>,
 
@@ -60,11 +60,8 @@ impl Git {
   pub fn new(path: &str) -> anyhow::Result<Self> {
     // Current
     let mut repo = Repository::open(Git::string_to_path(path)?)?;
-    let head = Head::new(&repo)?;
-
-    // .git/refs/
-    let refs_heads = Git::get_refs_from_glob(&repo, "refs/heads/**")?;
-    let refs = Refs { heads: refs_heads };
+    let head = HeadCondition::new(&repo)?;
+    let refs = RefrenceContainer::new(&repo);
 
     // Repo prefixed:
     let config = Git::get_config(&repo);
