@@ -11,9 +11,12 @@ pub struct RemoteData {
 
 #[allow(dead_code)]
 impl Git {
-  /// Returns [`Vec<RemoteData>`] if [`Repository::remotes()`] returns the listing of remotes.
   ///
-  /// [`String`] i.e Error is returned only if [`Repository::remotes()`] fails to list remotes.
+  /// By design this function returns either of :
+  ///
+  /// 1. [`Vec<RemoteData>`] if [`Repository::remotes()`] returns the listing of remotes.
+  ///
+  /// 2. [`String`] i.e Error is returned only if [`Repository::remotes()`] fails to list remotes.
   pub fn get_remotes(repo: &Repository) -> Result<Vec<RemoteData>, String> {
     let string_array = match repo.remotes() {
       Ok(arr) => arr,
