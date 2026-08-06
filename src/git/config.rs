@@ -1,77 +1,58 @@
+use std::result;
+
 use crate::git::Git;
 use git2::Repository;
 
-/// Contains individual `config entry` along with its `value`. The data is `cached` by design.
-#[allow(dead_code)]
-pub struct ConfigEntry {
-  pub config_entry: String,
-  pub config_value: String,
-}
-
-/// This enum is a wrapper to wrap errors/values gracefully, instead of panicking during compile/runtime.
-///
-/// `Found(ConfigEntry)` returned when config and the underlying entry was accessed succesfully. Else you will get an `Err(String)` for display.
-/// ```
-/// pub struct ConfigEntry {
-///   pub config_entry: String,
-///   pub config_value: String,
-/// }
-/// ```
-#[allow(dead_code)]
-pub enum Config {
-  Found(ConfigEntry),
-  Err(String),
+/// Individual entry and value of the `.git/config`.
+pub struct ConfigData {
+  pub entry: String,
+  pub value: String,
 }
 
 impl Git {
-  /// Get **config fields** and their values for any repo.
-  /// **Usage:**
-  /// ```
-  /// for item in Git::get_config(&repo) {
-  ///   match item {
-  ///     Config::Found(value) => {/*..*/},
-  ///     Config::Err(e) => {/*..*/},
-  ///   }
-  /// }
-  /// ```
-  pub fn get_config(repo: &Repository) -> Vec<Config> {
-    // Get config or return early
+  /// Get the vector of [`Result<ConfigData, String>`].
+  /// May contain only one index if :
+  /// 1. Failed reading repo's [`Config`].
+  /// 2. Failed creating snapshot of [`Config`].
+  /// 3. Recieved error instead of [`ConfigEntries<'_>`]
+  ///
+  /// `Note`:  String(Error) could be stored in any index.
+  pub fn get_config(repo: &Repository) -> Vec<result::Result<ConfigData, String>> {
+    // return early
     let mut config = match repo.config() {
       Ok(config) => config,
-      Err(e) => return vec![Config::Err(e.to_string())],
+      Err(e) => return vec![Err(format!("Error while reading config: {e}"))],
     };
 
-    // Cache the config.
+    // Cache config for further iteration.
     let snapshot = match config.snapshot() {
       Ok(s) => s,
-      Err(e) => return vec![Config::Err(e.to_string())],
+      Err(e) => return vec![Err(format!("Error while snapshoting: {e}"))],
     };
 
-    // iter over everything inside .git/config
+    // get iterator over all types of config entries.
     let mut entries = match snapshot.entries(None) {
       Ok(e) => e,
-      Err(e) => return vec![Config::Err(e.to_string())],
+      Err(e) => return vec![Err(format!("Error while getting config entries of config's snapshot: {e}"))],
     };
     let mut vector = Vec::new();
 
-    // Until entries.next() don't returns None
+    // Iterate -> match Some(entry) 
+    // Stop -> if None returned (often at last)
     while let Some(entry) = entries.next() {
-      // Push error and iter next or do the futher operation.
       let entry = match entry {
         Ok(entry) => entry,
+        // Don't return just push and skip.
         Err(e) => {
-          vector.push(Config::Err(e.to_string()));
+          vector.push(Err(e.to_string()));
           continue;
         }
       };
 
-      // Keep in mind that these fields are for display purpose.
-      let entry_name = entry.name().unwrap_or("<Invalid Entry Name>").to_string();
-      let entry_value = entry.value().unwrap_or("<Invalid Entry Value>").to_string();
-
-      vector.push(Config::Found(ConfigEntry {
-        config_entry: entry_name,
-        config_value: entry_value,
+      vector.push(Ok(ConfigData {
+        // Never use --> ? (try operator)
+        entry: entry.name().unwrap_or("<Invalid Entry Name>").to_string(),
+        value: entry.value().unwrap_or("<Invalid Entry Value>").to_string(),
       }));
     }
     vector
