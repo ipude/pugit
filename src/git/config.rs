@@ -4,6 +4,7 @@ use crate::git::Git;
 use git2::Repository;
 
 /// Individual entry and value of the `.git/config`.
+#[allow(dead_code)]
 pub struct ConfigData {
   pub entry: String,
   pub value: String,
