@@ -1,15 +1,21 @@
+use std::result;
+
 use git2::{Index, Repository, Status, StatusOptions, Statuses};
 
-/// Contains `Index`, `Worktree` and `Conflict` status of File present in repository.
-/// Similar to : `git status --short`
+/// Each code has a meaning. Parse them.
+///
+/// Short code show status of file:
+/// 1. In `Index` and in `Worktree` e.g `MM` for modified in both.
+///
+/// 2. In `Ours` vs `Their's` side during merge e.g `DD` for deleted by both.
 #[allow(dead_code)]
-pub struct GitStatus {
-  pub index_wt_status_code: String,
-  pub path: String,
+pub struct StatusCode {
+  pub short_status_code: String,
+  pub file_path: String,
 }
 
 #[allow(dead_code)]
-impl GitStatus {
+impl StatusCode {
   /// Returns the X's equivalent type from (XY) or simply the Index status of underlying file but in a char like 'A' for New item in Index.
   fn index_char(s: git2::Status) -> char {
     if s.contains(Status::INDEX_NEW) {
@@ -72,9 +78,8 @@ impl GitStatus {
   }
 
   /// Gives the statuses to iterate over
-  fn get_statuses<'repo>(
-    repo: &'repo Repository,
-  ) -> anyhow::Result<Statuses<'repo>, anyhow::Error> {
+  /// Gives the statuses to iterate over
+  fn get_statuses<'repo>(repo: &'repo Repository) -> std::result::Result<Statuses<'repo>, String> {
     let mut opts = StatusOptions::new();
     opts
       .include_untracked(true)
@@ -85,7 +90,10 @@ impl GitStatus {
       .renames_index_to_workdir(true)
       .no_refresh(false);
 
-    Ok(repo.statuses(Some(&mut opts))?)
+    match repo.statuses(Some(&mut opts)) {
+      Ok(statuses) => Ok(statuses),
+      Err(e) => Err(format!("Error while getting statuses: {e}")),
+    }
   }
 
   /// Constructs the status code for file depending whether it is untracked(??), conflicted(DD, UA, AU) or normal everyday case(M ,MM, M)
@@ -121,19 +129,25 @@ impl GitStatus {
   /// ```
   ///
   /// Where Code is in `XY`, `X_` or `_Y` format depending on status of the file.  **{Note: _ means blank}**
-  pub fn new(repo: &Repository) -> anyhow::Result<Vec<GitStatus>, anyhow::Error> {
-    let index = repo.index()?;
-    let statuses = Self::get_statuses(repo)?;
+  pub fn new(repo: &Repository) -> Vec<result::Result<StatusCode, String>> {
+    let index = match repo.index() {
+      Ok(idx) => idx,
+      Err(e) => return vec![Err(e.to_string())],
+    };
+    let statuses = match Self::get_statuses(repo) {
+      Ok(statuses) => statuses,
+      Err(e) => return vec![Err(e)],
+    };
     let mut vector = Vec::new();
 
     for entry in statuses.iter() {
       let path = entry.path().unwrap_or("<invalid utf-8>");
       let status = entry.status();
-      vector.push(GitStatus {
-        index_wt_status_code: Self::constructor(&status, &index, path),
-        path: path.to_string(),
-      });
+      vector.push(Ok(StatusCode {
+        short_status_code: Self::constructor(&status, &index, path),
+        file_path: path.to_string(),
+      }));
     }
-    Ok(vector)
+    vector
   }
 }
