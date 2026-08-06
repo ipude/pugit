@@ -1,15 +1,22 @@
 use crate::git::Git;
 use git2::Repository;
 
-// Contains cached individual config entry and its value.
+/// Contains individual `config entry` along with its `value`. The data is `cached` by design.
 #[allow(dead_code)]
 pub struct ConfigEntry {
   pub config_entry: String,
   pub config_value: String,
 }
 
-/// Purpose: Handeling error and storing in String format.
-/// There can be either `Found(ConfigEntry)` or Err(String)
+/// This enum is a wrapper to wrap errors/values gracefully, instead of panicking during compile/runtime.
+///
+/// `Found(ConfigEntry)` returned when config and the underlying entry was accessed succesfully. Else you will get an `Err(String)` for display.
+/// ```
+/// pub struct ConfigEntry {
+///   pub config_entry: String,
+///   pub config_value: String,
+/// }
+/// ```
 #[allow(dead_code)]
 pub enum Config {
   Found(ConfigEntry),
