@@ -3,7 +3,7 @@ use git2::Repository;
 
 /// Contains status of remote including its `name`, `url` and `pushurl`.
 #[allow(dead_code)]
-pub struct RemoteStatus {
+pub struct RemoteData {
   pub name: String,
   pub url: String,
   pub pushurl: String,
@@ -11,41 +11,51 @@ pub struct RemoteStatus {
 
 #[allow(dead_code)]
 impl Git {
-  /// Returns struct `Vec<RemoteStatus>`. This returns only the remote with distinct names explicitly set by user via :
-  /// ```sh
-  ///git remote add github https://github.com/usrname/repo.git
-  /// git remote add gitlab https://gitlab.com/usrname/repo.git
-  /// ```
-  /// The number of remotes returned depend on whether they are named unique or not. For multiple rmeote url added under a single umbrella term dont expect each url to be returned:
+  /// Returns [`Vec<RemoteData>`] if [`Repository::remotes()`] returns the listing of remotes.
   ///
-  /// For cases like below this function will onky return the remote named `origin` its `url` and `pushurl` and move forward.
-  ///
-  /// Example:
-  /// ```sh
-  /// git remote add origin git@github.com:user/repo.git
-  /// git remote set-url --add --push origin git@github.com:user/repo.git
-  /// git remote set-url --add --push origin git@gitlab.com:user/repo.git
-  /// ```
-  ///
-  /// This is intentionally done keeping these things in mind:
-  ///
-  /// 1. Majority of users likely uses single remotes or multiple remotes (mirroring) under the name `origin`.
-  ///
-  /// 2. Only a few knows how to manage the remotes professionally. So, they almost always have distinct names for precise control over push, pull and fetch.
-  ///
-  /// So in a nutshell this function is designed to show only the remotes that are unique per repo.
-  ///
-  pub fn get_remotes(repo: &Repository) -> anyhow::Result<Vec<RemoteStatus>, anyhow::Error> {
-    let string_array = repo.remotes()?;
+  /// [`String`] i.e Error is returned only if [`Repository::remotes()`] fails to list remotes.
+  pub fn get_remotes(repo: &Repository) -> Result<Vec<RemoteData>, String> {
+    let string_array = match repo.remotes() {
+      Ok(arr) => arr,
+      Err(e) => return Err(format!("Error while listing StringArray of remotes: {e}")),
+    };
+
     let mut vector = Vec::new();
-    for i in string_array.iter().flatten() {
-      let remote = repo.find_remote(i.unwrap())?;
-      vector.push(RemoteStatus {
-        name: remote.name()?.unwrap_or("<None>").to_string(),
-        url: remote.url()?.to_string(),
-        pushurl: remote.pushurl()?.unwrap_or("<None>").to_string(),
+
+    for name_res in string_array.iter() {
+      let name = match name_res {
+        Ok(Some(n)) => n,
+        Ok(None) => continue, // non-utf8-name, skip
+        Err(_) => continue,   // unreadable-entry, skip
+      };
+
+      let remote = match repo.find_remote(name) {
+        Ok(r) => r,
+        Err(_) => continue, // failed to resolve remote -- skip
+      };
+
+      let remote_name = match remote.name() {
+        Ok(Some(n)) => n.to_string(),
+        _ => "<Invalid Remote Name>".to_string(),
+      };
+
+      let url = match remote.url() {
+        Ok(u) => u.to_string(),
+        Err(_) => "<Invalid Remote Url>".to_string(),
+      };
+
+      let pushurl = match remote.pushurl() {
+        Ok(Some(p)) => p.to_string(),
+        _ => "<None>".to_string(),
+      };
+
+      vector.push(RemoteData {
+        name: remote_name,
+        url,
+        pushurl,
       });
     }
+
     Ok(vector)
   }
 }
