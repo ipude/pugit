@@ -1,16 +1,9 @@
-// ==========================
-// Imports
-// ==========================
 use crate::git::{
   ahead_behind::ABData, branches::BranchStatus, config::Config, head::Head, index::GitStatus,
   refs::Refs, remote::RemoteStatus, repo_state::RepoState, tags_list::TagInfo,
 };
 use git2::{Oid, Repository};
-// ==========================
-// ==========================
 
-// ==========================
-// Modules
 // ==========================
 pub mod ahead_behind;
 pub mod branches;
@@ -26,12 +19,8 @@ pub mod string_to_path;
 pub mod tags_list;
 pub mod utils;
 // ==========================
-// ==========================
 
-// ==========================
-// Git init
-// ==========================
-/// Pugit's core data sturcture that holds almost all important Git things.
+/// Fgit's data struct for Git.
 #[allow(dead_code)]
 pub struct Git {
   pub repo: Repository,
