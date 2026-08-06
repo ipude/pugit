@@ -16,8 +16,10 @@ pub struct RefrenceContainer {
 }
 
 impl RefrenceContainer {
-  pub fn new(repo: &Repository)-> Self {
-    Self { heads: Git::get_refs_from_glob(repo, "refs/heads/**") }
+  pub fn new(repo: &Repository) -> Self {
+    Self {
+      heads: Git::get_refs_from_glob(repo, "refs/heads/**"),
+    }
   }
 }
 

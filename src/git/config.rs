@@ -34,11 +34,15 @@ impl Git {
     // get iterator over all types of config entries.
     let mut entries = match snapshot.entries(None) {
       Ok(e) => e,
-      Err(e) => return vec![Err(format!("Error while getting config entries of config's snapshot: {e}"))],
+      Err(e) => {
+        return vec![Err(format!(
+          "Error while getting config entries of config's snapshot: {e}"
+        ))];
+      }
     };
     let mut vector = Vec::new();
 
-    // Iterate -> match Some(entry) 
+    // Iterate -> match Some(entry)
     // Stop -> if None returned (often at last)
     while let Some(entry) = entries.next() {
       let entry = match entry {

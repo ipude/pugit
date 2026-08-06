@@ -31,8 +31,6 @@ pub struct Git {
   pub refs: RefrenceContainer,
   pub config: Vec<result::Result<ConfigData, String>>,
   pub git_status: Vec<result::Result<StatusCode, String>>,
-
-  // all unique remotes connected to repo
   pub remotes: result::Result<Vec<RemoteData>, String>,
 
   // all branches inside a repo
