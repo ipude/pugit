@@ -1,6 +1,9 @@
+use std::result;
+
 use crate::git::{
-  ahead_behind::ABData, branches::BranchStatus, config::Config, head::HeadCondition, index::GitStatus,
-  refs::RefrenceContainer, remote::RemoteStatus, repo_state::RepoState, tags_list::TagInfo,
+  ahead_behind::ABData, branches::BranchStatus, config::ConfigData, head::HeadCondition,
+  index::StatusCode, refs::RefrenceContainer, remote::RemoteStatus, repo_state::RepoState,
+  tags_list::TagInfo,
 };
 use git2::{Oid, Repository};
 
@@ -26,8 +29,8 @@ pub struct Git {
   pub repo: Repository,
   pub head: HeadCondition,
   pub refs: RefrenceContainer,
-  pub config: Vec<Config>,
-  pub modified_status: Vec<GitStatus>,
+  pub config: Vec<result::Result<ConfigData, String>>,
+  pub git_status: Vec<result::Result<StatusCode, String>>,
 
   // all unique remotes connected to repo
   pub remotes: Vec<RemoteStatus>,
@@ -65,7 +68,7 @@ impl Git {
 
     // Repo prefixed:
     let config = Git::get_config(&repo);
-    let modified_status = GitStatus::new(&repo)?;
+    let git_status = StatusCode::new(&repo);
     let remotes = Git::get_remotes(&repo)?;
     let branches = Git::get_branches(&repo)?;
     let commits = Git::get_commits_log(&repo)?;
@@ -83,7 +86,7 @@ impl Git {
       head,
       refs,
       config,
-      modified_status,
+      git_status,
       remotes,
       branches,
       commits,
