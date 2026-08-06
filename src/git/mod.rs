@@ -2,7 +2,7 @@ use std::result;
 
 use crate::git::{
   ahead_behind::ABData, branches::BranchStatus, config::ConfigData, head::HeadCondition,
-  index::StatusCode, refs::RefrenceContainer, remote::RemoteStatus, repo_state::RepoState,
+  index::StatusCode, refs::RefrenceContainer, remote::RemoteData, repo_state::RepoState,
   tags_list::TagInfo,
 };
 use git2::{Oid, Repository};
@@ -33,7 +33,7 @@ pub struct Git {
   pub git_status: Vec<result::Result<StatusCode, String>>,
 
   // all unique remotes connected to repo
-  pub remotes: Vec<RemoteStatus>,
+  pub remotes: result::Result<Vec<RemoteData>, String>,
 
   // all branches inside a repo
   pub branches: Vec<BranchStatus>,
@@ -69,7 +69,7 @@ impl Git {
     // Repo prefixed:
     let config = Git::get_config(&repo);
     let git_status = StatusCode::new(&repo);
-    let remotes = Git::get_remotes(&repo)?;
+    let remotes = Git::get_remotes(&repo);
     let branches = Git::get_branches(&repo)?;
     let commits = Git::get_commits_log(&repo)?;
     let stash_list = Git::get_stash_list(&mut repo)?;
