@@ -1,4 +1,4 @@
-use std::result;
+use std::result::Result;
 
 use crate::git::Git;
 use git2::Repository;
@@ -9,11 +9,10 @@ impl Git {
   /// Individual index can contain `Result<branch_name: String, error: String>`
   pub fn get_branches(
     repo: &Repository,
-  ) -> result::Result<Vec<result::Result<String, String>>, String> {
-    let branches = match repo.branches(Some(git2::BranchType::Local)) {
-      Ok(branchiterator) => branchiterator,
-      Err(e) => return Err(e.to_string()),
-    };
+  ) -> Result<(Vec<(usize, String)>, Vec<(usize, String)>), String> {
+    let branches = repo
+      .branches(Some(git2::BranchType::Local))
+      .map_err(|e| e.to_string())?;
     let mut vector = Vec::new();
 
     for branch in branches {
@@ -31,6 +30,16 @@ impl Git {
         _ => Ok("NA".to_string()),
       });
     }
-    Ok(vector)
+
+    let mut oks: Vec<(usize, String)> = Vec::new();
+    let mut errs: Vec<(usize, String)> = Vec::new();
+
+    for (idx, branches) in vector.iter().enumerate() {
+      match branches {
+        Ok(branch) => oks.push((idx, branch.to_string())),
+        Err(error) => errs.push((idx, error.to_string())),
+      }
+    }
+    Ok((oks, errs))
   }
 }
