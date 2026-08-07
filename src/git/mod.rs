@@ -20,6 +20,7 @@ pub mod stash_list;
 pub mod string_to_path;
 pub mod tags_list;
 pub mod utils;
+pub mod tmp;
 // ==========================
 
 /// Fgit's data struct for Git.
@@ -65,7 +66,8 @@ impl Git {
     let config = Git::get_config(&repo);
     let git_status = StatusCode::new(&repo);
     let remotes = Git::get_remotes(&repo);
-    let branches = Git::get_branches(&repo);
+
+    let branches = Git::filter_result(&repo, &head);
     let commits = Git::get_commits_log(&repo)?;
     let stash_list = Git::get_stash_list(&mut repo)?;
     let tag_list = Git::get_tags_detailed(&repo)?;
@@ -73,8 +75,6 @@ impl Git {
     let state = Git::get_repo_state(&repo);
 
     // Comparison of all branches with current one for ahead_behind
-    let ahead_behind_from_current =
-      Git::ahead_behind_from_current(&repo, &head.get_attached(&repo)?.unwrap(), &branches)?;
 
     Ok(Self {
       repo,
