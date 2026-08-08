@@ -1,10 +1,11 @@
-use std::{result};
+use std::result;
 
 use crate::git::{Git, branches::BranchesContainer};
 use git2::{Branch, Repository};
 
 /// Contains ahead-behind data.
 #[allow(dead_code)]
+#[derive(Clone)]
 pub struct ABData {
   pub given_branch: String,
   pub other_branch: String,
@@ -22,24 +23,13 @@ impl Git {
   ///
   /// 4. Will not `panic/propogate` error.
   pub fn get_ahead_behind(
+    vector: &mut Vec<ABData>,
     repo: &Repository,
     current_branch: &Branch,
     branches: &[String],
-    result: result::Result<BranchesContainer, String>,
   ) -> Vec<ABData> {
-    let mut vector: Vec<ABData> = Vec::new();
-
-    match &result {
-      Ok(container) => {
-        if container.is_single_branch() {
-          return vector;
-        }
-      }
-      Err(_) => return vector,
-    }
-
     for branch in branches {
-      let other_branch = match Git::to_local_branch(repo, &branch.as_str()) {
+      let other_branch = match Git::to_local_branch(repo, branch.as_str()) {
         Ok(v) => v,
         Err(_) => continue,
       };
@@ -74,6 +64,26 @@ impl Git {
         });
       }
     }
-    vector
+    vector.to_vec()
+  }
+
+  pub fn safely_get_ahead_behind(
+    repo: &Repository,
+    current_branch: &Branch,
+    result: &result::Result<BranchesContainer, String>,
+  ) -> Vec<ABData> {
+    let mut vector: Vec<ABData> = Vec::new();
+    match &result {
+      Ok(container) => {
+        if container.is_single_branch() {
+          vector
+        } else {
+          let branches = &container.vector_branches;
+          Git::get_ahead_behind(&mut vector, repo, current_branch, branches)
+        }
+      }
+
+      Err(_) => vector,
+    }
   }
 }
