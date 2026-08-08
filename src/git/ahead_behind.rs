@@ -46,7 +46,7 @@ impl Git {
         Err(_) => "<Invalid Branch/HEAD is detached>".to_string(),
       };
 
-      let other_branch_name = match current_branch.name() {
+      let other_branch_name = match other_branch.name() {
         Ok(Some(v)) => v.to_string(),
         Ok(None) => "<Invalid Utf-8>".to_string(),
         Err(_) => "<Invalid Branch/HEAD is detached>".to_string(),
