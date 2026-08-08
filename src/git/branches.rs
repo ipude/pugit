@@ -3,6 +3,7 @@ use std::result::Result;
 use crate::git::Git;
 use git2::Repository;
 
+
 #[allow(dead_code)]
 impl Git {
   /// Returns Error early if `repo.branches()` return error.
@@ -10,6 +11,7 @@ impl Git {
   pub fn get_branches(
     repo: &Repository,
   ) -> Result<(Vec<(usize, String)>, Vec<(usize, String)>), String> {
+    // Map error and return early 
     let branches = repo
       .branches(Some(git2::BranchType::Local))
       .map_err(|e| e.to_string())?;
