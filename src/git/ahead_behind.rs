@@ -1,4 +1,6 @@
-use crate::git::Git;
+use std::{result, vec};
+
+use crate::git::{Git, branches::BranchesContainer};
 use git2::{Branch, Repository};
 
 /// Contains ahead-behind data.
@@ -19,8 +21,18 @@ impl Git {
     repo: &Repository,
     current_branch: &Branch,
     branches: &[String],
+    result: result::Result<BranchesContainer, String>,
   ) -> Vec<ABData> {
-    let mut vector = Vec::new();
+    let mut vector: Vec<ABData> = Vec::new();
+
+    match &result {
+      Ok(container) => {
+        if container.is_single_branch() {
+          return vector;
+        }
+      }
+      Err(_) => return vector,
+    }
 
     for branch in branches {
       let other_branch = match Git::to_local_branch(repo, &branch.as_str()) {
