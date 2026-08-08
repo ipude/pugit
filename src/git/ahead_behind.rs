@@ -1,5 +1,4 @@
 use git2::{Branch, Repository};
-
 use crate::git::Git;
 
 /// Contains ahead-behind data.
@@ -18,11 +17,14 @@ impl Git {
     repo: &Repository,
     current_branch: &Branch,
     branches: &[(usize, String)],
-  ) -> anyhow::Result<Vec<ABData>, anyhow::Error> {
+  ) -> Vec<ABData> {
     let mut vector = Vec::new();
 
     for (_idx, branch) in branches {
-      let other_branch = Git::to_local_branch(repo, &branch.as_str())?;
+      let other_branch = match Git::to_local_branch(repo, &branch.as_str()) {
+        Ok(v) => v,
+        Err(_) => continue,
+      };
 
       let current_branch_name = match current_branch.name() {
         Ok(Some(v)) => v.to_string(),
@@ -38,7 +40,6 @@ impl Git {
 
       // skip same branch
       if current_branch_name != other_branch_name {
-
         let (ahead, behind) = match repo.graph_ahead_behind(
           current_branch.get().target().unwrap(),
           other_branch.get().target().unwrap(),
@@ -55,6 +56,6 @@ impl Git {
         });
       }
     }
-    Ok(vector)
+    vector
   }
 }
