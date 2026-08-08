@@ -30,7 +30,11 @@ impl Git {
         Ok(None) => "<Invalid Utf-8>".to_string(),
         Err(_) => "<Invalid Branch/HEAD is detached>".to_string(),
       };
-      let other_branch_name = other_branch.name()?.unwrap().to_string();
+      let other_branch_name = match current_branch.name() {
+        Ok(Some(v)) => v.to_string(),
+        Ok(None) => "<Invalid Utf-8>".to_string(),
+        Err(_) => "<Invalid Branch/HEAD is detached>".to_string(),
+      };
 
       // The filteration tactic to skip grace fully for the iteration where branch 1 equates branch 2
       if current_branch_name != other_branch_name {
