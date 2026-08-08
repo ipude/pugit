@@ -38,10 +38,14 @@ impl Git {
 
       // skip same branch
       if current_branch_name != other_branch_name {
-        let (ahead, behind) = repo.graph_ahead_behind(
+
+        let (ahead, behind) = match repo.graph_ahead_behind(
           current_branch.get().target().unwrap(),
           other_branch.get().target().unwrap(),
-        )?;
+        ) {
+          Ok(v) => v,
+          Err(_) => continue,
+        };
 
         vector.push(ABData {
           given_branch: current_branch_name,
