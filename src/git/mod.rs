@@ -19,7 +19,6 @@ pub mod stash_list;
 pub mod string_to_path;
 pub mod tags_list;
 pub mod utils;
-pub mod tmp;
 // ==========================
 
 /// Fgit's data struct for Git.
@@ -31,10 +30,10 @@ pub struct Git {
   pub remotes: result::Result<Vec<RemoteData>, String>,
   pub config: Vec<result::Result<ConfigData, String>>,
   pub git_status: Vec<result::Result<StatusCode, String>>,
-  pub branches: result::Result<BranchesContainer, String>,
+  pub branches_container: result::Result<BranchesContainer, String>,
 
   // ahead behind data for current_branch compared with branches of a repo.
-  pub ahead_behind_from_current: Vec<ABData>,
+  pub ahead_behind: Vec<ABData>,
 
   // commit list of entire repo.
   // equivalent to: git log --oneline
@@ -65,8 +64,9 @@ impl Git {
     let config = Git::get_config(&repo);
     let git_status = StatusCode::new(&repo);
     let remotes = Git::get_remotes(&repo);
+    let branches_container = Git::get_branches(&repo);
+    let ahead_behind = Git::safely_get_ahead_behind(&repo, &head.get_attached(&repo)?.unwrap(), &branches_container);
 
-    let branches = Git::get_branches(&repo);
     let commits = Git::get_commits_log(&repo)?;
     let stash_list = Git::get_stash_list(&mut repo)?;
     let tag_list = Git::get_tags_detailed(&repo)?;
@@ -82,12 +82,12 @@ impl Git {
       config,
       git_status,
       remotes,
-      branches,
+      branches_container,
       commits,
       stash_list,
       tag_list,
       state,
-      ahead_behind_from_current,
+      ahead_behind,
     })
   }
 }
