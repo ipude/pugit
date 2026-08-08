@@ -1,8 +1,7 @@
 use std::result;
 
 use crate::git::{
-  ahead_behind::ABData, config::ConfigData, head::HeadCondition, index::StatusCode,
-  refs::RefrenceContainer, remote::RemoteData, repo_state::RepoState, tags_list::TagInfo,
+  ahead_behind::ABData, branches::BranchesContainer, config::ConfigData, head::HeadCondition, index::StatusCode, refs::RefrenceContainer, remote::RemoteData, repo_state::RepoState, tags_list::TagInfo
 };
 use git2::{Oid, Repository};
 
@@ -32,7 +31,7 @@ pub struct Git {
   pub remotes: result::Result<Vec<RemoteData>, String>,
   pub config: Vec<result::Result<ConfigData, String>>,
   pub git_status: Vec<result::Result<StatusCode, String>>,
-  pub branches: result::Result<Vec<result::Result<String, String>>, String>,
+  pub branches: result::Result<BranchesContainer, String>,
 
   // ahead behind data for current_branch compared with branches of a repo.
   pub ahead_behind_from_current: Vec<ABData>,
@@ -67,7 +66,7 @@ impl Git {
     let git_status = StatusCode::new(&repo);
     let remotes = Git::get_remotes(&repo);
 
-    let branches = Git::filter_result(&repo, &head);
+    let branches = Git::get_branches(&repo);
     let commits = Git::get_commits_log(&repo)?;
     let stash_list = Git::get_stash_list(&mut repo)?;
     let tag_list = Git::get_tags_detailed(&repo)?;
