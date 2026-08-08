@@ -13,7 +13,7 @@ pub struct ABData {
 
 #[allow(dead_code)]
 impl Git {
-  /// **Given branch** is matched against **all local branches** of the **repository**, **excluding the given branch**.
+  /// Given branch is matched against every local branch of repo, excluding itself.
   pub fn get_ahead_behind(
     repo: &Repository,
     current_branch: &Branch,
