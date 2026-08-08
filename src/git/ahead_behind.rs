@@ -1,5 +1,5 @@
-use git2::{Branch, Repository};
 use crate::git::Git;
+use git2::{Branch, Repository};
 
 /// Contains ahead-behind data.
 #[allow(dead_code)]
@@ -12,15 +12,16 @@ pub struct ABData {
 
 #[allow(dead_code)]
 impl Git {
-  /// Given branch is matched against every local branch of repo, excluding itself.
+  /// `Given branch` is matched against `every local branch` of repo, `excluding itself`.
+  /// May skip a branch from branches if its `name: String` can't be expanded into [`git2::Branch<'repo>`]
   pub fn get_ahead_behind(
     repo: &Repository,
     current_branch: &Branch,
-    branches: &[(usize, String)],
+    branches: &[String],
   ) -> Vec<ABData> {
     let mut vector = Vec::new();
 
-    for (_idx, branch) in branches {
+    for branch in branches {
       let other_branch = match Git::to_local_branch(repo, &branch.as_str()) {
         Ok(v) => v,
         Err(_) => continue,
