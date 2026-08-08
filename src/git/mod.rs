@@ -31,8 +31,6 @@ pub struct Git {
   pub config: Vec<result::Result<ConfigData, String>>,
   pub git_status: Vec<result::Result<StatusCode, String>>,
   pub branches_container: result::Result<BranchesContainer, String>,
-
-  // ahead behind data for current_branch compared with branches of a repo.
   pub ahead_behind: Vec<ABData>,
 
   // commit list of entire repo.
