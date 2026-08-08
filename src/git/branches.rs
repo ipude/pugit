@@ -3,16 +3,20 @@ use std::result::Result;
 use crate::git::Git;
 use git2::Repository;
 
+
+#[allow(dead_code)]
 pub struct BranchesContainer {
   pub vector_branches: Vec<String>,
   pub error: BranchesError,
 }
 
+#[allow(dead_code)]
 pub struct BranchesError {
   pub serious: Vec<String>,
   pub vector_non_utf8_branches: Vec<String>,
 }
 
+#[allow(dead_code)]
 impl BranchesContainer {
   /// Returns `true` if `error.serious` contain at lest one error.
   pub fn has_serious_err(&self) -> bool {
