@@ -50,7 +50,7 @@ impl HeadCondition {
   ) -> anyhow::Result<Option<Branch<'repo>>, anyhow::Error> {
     match self {
       HeadCondition::Attached(name) => {
-        let branch = Git::to_branch_local(repo, &name.to_string())?;
+        let branch = Git::to_local_branch(repo, &name.to_string())?;
         Ok(Some(branch))
       }
       _ => Ok(None),

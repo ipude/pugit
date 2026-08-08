@@ -21,8 +21,7 @@ impl Git {
   ) -> anyhow::Result<Vec<ABData>, anyhow::Error> {
     let mut vector = Vec::new();
     for (_idx, branch) in branches {
-      // The current entry of branches that will be matched against branch 1.
-      let other_branch = Git::to_branch_local(repo, &branch.as_str())?;
+      let other_branch = Git::to_local_branch(repo, &branch.as_str())?;
 
       // To avoid recalculation everytime
       let current_branch_name = match current_branch.name() {

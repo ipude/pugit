@@ -5,7 +5,7 @@ use git2::{Branch, Oid, Repository};
 impl Git {
   /// Global helper function to tackle `String to Branch<'repo>` cases through Git
   /// Convert any valid `local` branch name into `Branch<'repo>`
-  pub fn to_branch_local<'repo>(
+  pub fn to_local_branch<'repo>(
     repo: &'repo Repository,
     attached: &str,
   ) -> anyhow::Result<Branch<'repo>, anyhow::Error> {
