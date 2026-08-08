@@ -1,4 +1,4 @@
-use std::{result, vec};
+use std::{result};
 
 use crate::git::{Git, branches::BranchesContainer};
 use git2::{Branch, Repository};
@@ -14,9 +14,13 @@ pub struct ABData {
 
 #[allow(dead_code)]
 impl Git {
-  /// `Given branch` is matched against `every local branch` of repo, `excluding itself`.
-  /// May skip a branch from branches if its `name: String` can't be expanded into [`git2::Branch<'repo>`]
-  /// Will not panic/propogate error.
+  /// 1. `Given branch` is matched against `every local branch` of repo, `excluding itself`.
+  ///
+  /// 2. Will return an empty [`Vec<ABData>`] if the repo has a single branch, or if `result` is [`Err`] i.e iterator over branches could not have been created.
+  ///
+  /// 3. May skip a branch from branches if its `name: String` can't be expanded into [`git2::Branch<'repo>`]
+  ///
+  /// 4. Will not `panic/propogate` error.
   pub fn get_ahead_behind(
     repo: &Repository,
     current_branch: &Branch,
