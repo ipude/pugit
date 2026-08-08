@@ -14,6 +14,7 @@ pub struct ABData {
 impl Git {
   /// `Given branch` is matched against `every local branch` of repo, `excluding itself`.
   /// May skip a branch from branches if its `name: String` can't be expanded into [`git2::Branch<'repo>`]
+  /// Will not panic/propogate error.
   pub fn get_ahead_behind(
     repo: &Repository,
     current_branch: &Branch,
