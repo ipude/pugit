@@ -18,15 +18,19 @@ impl BranchesContainer {
   pub fn has_serious_err(&self) -> bool {
     !self.error.serious.is_empty()
   }
+  /// Returns `true` if `error.vector_non_utf8_branches` contain at lest one error.
+  pub fn has_non_utf8_branches(&self) -> bool {
+    !self.error.vector_non_utf8_branches.is_empty()
+  }
 
   /// Returns `true` if `vector_branches` contain at lest one branch.
   pub fn is_branches_nil(&self) -> bool {
     self.vector_branches.is_empty()
   }
 
-  /// Returns `true` if `error.vector_non_utf8_branches` contain at lest one error.
-  pub fn has_non_utf8_branches(&self) -> bool {
-    !self.error.vector_non_utf8_branches.is_empty()
+  /// Returns `true` if `vector_branches` has exactly one item.
+  pub fn is_single_branch(&self) -> bool {
+    self.vector_branches.len() == 1
   }
 }
 
